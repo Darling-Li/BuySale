@@ -1,0 +1,12 @@
+/backend/target/
+/frontend/node_modules/
+dist/
+.m2/
+.vscode/
+*.iml
+.DS_Store
+*.log
+.env
+.idea/
+/backend/.idea/
+/frontend/.idea/

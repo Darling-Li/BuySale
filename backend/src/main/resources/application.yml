@@ -1,0 +1,35 @@
+server:
+  port: 8848
+
+spring:
+  application:
+    name: rice-trade
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/rice_trade?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+app:
+  security:
+    admin:
+      username: ${ADMIN_USERNAME:admin}
+      password: ${ADMIN_PASSWORD:admin123}
+    viewer:
+      username: ${VIEWER_USERNAME:user}
+      password: ${VIEWER_PASSWORD:user123}
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://127.0.0.1:5173
