@@ -1,36 +1,58 @@
 package com.rice.trade.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rice.trade.config.AccessControlProperties;
+import com.rice.trade.config.ApiCryptoProperties;
+import com.rice.trade.dto.ApiResponse;
 import com.rice.trade.mapper.AuditLogMapper;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 @Configuration
+@EnableConfigurationProperties({AccessControlProperties.class, ApiCryptoProperties.class})
 public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuditLogMapper auditLogMapper,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            AccessControlProperties accessControlProperties,
+            ApiCryptoProperties apiCryptoProperties
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> writeError(
+                                response,
+                                objectMapper,
+                                HttpStatus.UNAUTHORIZED,
+                                "请先登录"
+                        ))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> writeError(
+                                response,
+                                objectMapper,
+                                HttpStatus.FORBIDDEN,
+                                "没有访问权限"
+                        ))
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/system/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/audit-logs").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
@@ -39,32 +61,26 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
+                .addFilterBefore(new ClientAccessFilter(objectMapper, accessControlProperties), AuthorizationFilter.class)
+                .addFilterBefore(new ApiCryptoFilter(objectMapper, apiCryptoProperties), AuthorizationFilter.class)
                 .addFilterAfter(new AdminOperationLogFilter(auditLogMapper, objectMapper), AuthorizationFilter.class)
                 .build();
     }
 
     @Bean
-    UserDetailsService userDetailsService(
-            @Value("${app.security.admin.username}") String adminUsername,
-            @Value("${app.security.admin.password}") String adminPassword,
-            @Value("${app.security.viewer.username}") String viewerUsername,
-            @Value("${app.security.viewer.password}") String viewerPassword,
-            PasswordEncoder passwordEncoder
-    ) {
-        return new InMemoryUserDetailsManager(
-                User.withUsername(adminUsername)
-                        .password(passwordEncoder.encode(adminPassword))
-                        .roles("ADMIN")
-                        .build(),
-                User.withUsername(viewerUsername)
-                        .password(passwordEncoder.encode(viewerPassword))
-                        .roles("USER")
-                        .build()
-        );
-    }
-
-    @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void writeError(
+            HttpServletResponse response,
+            ObjectMapper objectMapper,
+            HttpStatus status,
+            String message
+    ) throws java.io.IOException {
+        response.setStatus(status.value());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), ApiResponse.failure(status.value(), message, null));
     }
 }

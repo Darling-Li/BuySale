@@ -52,7 +52,7 @@ mvn spring-boot:run
 
 ## 登录角色
 
-默认使用 HTTP Basic 登录，前端登录页会保存本地登录态：
+默认使用 HTTP Basic 登录，账号和角色由数据库表 `system_users`、`system_roles`、`system_user_roles` 维护。Flyway 会初始化两个默认账号：
 
 ```text
 管理员：admin / admin123
@@ -64,13 +64,7 @@ mvn spring-boot:run
 - 管理员：可以新增采购、自动入库、销售出库、更新结算、维护仓库，并自动写入操作日志。
 - 普通角色：只能查询看板、采购、销售、库存、仓库等数据，不能做新增、修改、删除。
 
-可以用环境变量改默认账号：
-
-```bash
-ADMIN_USERNAME=admin ADMIN_PASSWORD=your_admin_password \
-VIEWER_USERNAME=user VIEWER_PASSWORD=your_user_password \
-mvn spring-boot:run
-```
+管理员可以通过系统用户接口维护账号和角色；生产环境上线后建议立即修改默认密码。
 
 ## 启动前端
 
@@ -82,10 +76,56 @@ npm run dev
 
 前端地址：`http://localhost:5173`
 
+## 生产安全配置
+
+### IP / 地区限制
+
+后端内置了可配置访问过滤器，默认关闭，生产环境可通过环境变量启用：
+
+```bash
+APP_ACCESS_ENABLED=true \
+APP_ACCESS_ALLOWED_CIDRS='203.0.113.0/24,198.51.100.10' \
+APP_ACCESS_ALLOWED_REGIONS='浙江省,上海市' \
+APP_ACCESS_TRUSTED_PROXY_CIDRS='10.0.0.0/8,172.16.0.0/12' \
+APP_ACCESS_REGION_HEADERS='X-Client-Province,X-Client-Region' \
+mvn spring-boot:run
+```
+
+`APP_ACCESS_ALLOWED_CIDRS` 用于限制来源 IP 段，`APP_ACCESS_ALLOWED_REGIONS` 用于限制地区。地区判断依赖阿里云 CDN/WAF/负载均衡等可信代理写入的请求头，因此需要同时把 `APP_ACCESS_TRUSTED_PROXY_CIDRS` 配成这些代理的内网或出口 IP 段，并在云侧安全组中禁止用户绕过代理直连后端。
+
+### 前后端报文加密
+
+后端和前端使用同一个共享密钥派生 AES-GCM 密钥，当前默认开启；未配置时默认密钥是 `lmbcddzxj1314`，生产环境必须替换：
+
+```bash
+APP_CRYPTO_SHARED_KEY='replace-with-a-long-random-secret' \
+APP_CRYPTO_REQUIRE_ENCRYPTED_REQUESTS=true \
+mvn spring-boot:run
+```
+
+前端生产构建时使用同一个密钥；如需临时关闭，可设置 `VITE_CRYPTO_ENABLED=false` 和 `APP_CRYPTO_ENABLED=false`：
+
+```bash
+VITE_CRYPTO_SHARED_KEY=replace-with-a-long-random-secret
+VITE_CONSOLE_GUARD=true
+```
+
+前端会加密 `POST/PUT/PATCH` 请求体，后端会加密 JSON 响应。这个机制不能替代 HTTPS，生产环境仍必须使用 HTTPS，并定期更换共享密钥。
+
+### 控制台防护
+
+生产构建默认会阻断常见右键、快捷键和已打开调试窗口的场景。浏览器控制台无法从技术上被前端代码绝对禁止，因此敏感数据和权限判断不能依赖控制台防护，必须依赖后端鉴权、IP/地区限制和报文加密。
+
 ## 核心接口
 
 - `GET /api/reference/product-types` 商品类型
 - `GET /api/auth/me` 当前登录用户
+- `GET /api/system/roles` 管理员查询角色
+- `POST /api/system/roles` 管理员新增角色
+- `PUT /api/system/roles/{id}` 管理员修改角色
+- `GET /api/system/users` 管理员查询用户
+- `POST /api/system/users` 管理员新增用户
+- `PUT /api/system/users/{id}` 管理员修改用户、密码和角色
 - `GET /api/warehouses` 仓库列表
 - `POST /api/warehouses` 新建仓库
 - `GET /api/purchases` 采购记录

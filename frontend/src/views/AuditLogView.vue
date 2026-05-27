@@ -44,10 +44,10 @@
                 <button
                   class="params-copy"
                   type="button"
-                  :title="formatParams(item.requestParams)"
-                  @click="copyParams(item.requestParams)"
+                  :title="displayParams(item)"
+                  @click="copyParams(item)"
                 >
-                  {{ formatParams(item.requestParams) }}
+                  {{ displayParams(item) }}
                 </button>
               </td>
               <td>
@@ -67,6 +67,7 @@
 import { onMounted, ref } from 'vue'
 import { RefreshCcw } from 'lucide-vue-next'
 import { tradeApi } from '../api/trade'
+import { decryptPayload } from '../utils/cryptoEnvelope'
 import { extractError } from '../utils/format'
 
 const records = ref([])
@@ -77,10 +78,18 @@ let copyNoticeTimer = 0
 async function loadLogs() {
   error.value = ''
   try {
-    records.value = await tradeApi.auditLogs()
+    const logs = await tradeApi.auditLogs()
+    records.value = await Promise.all(logs.map(async (item) => ({
+      ...item,
+      requestParamsDisplay: await decryptedParamsText(item.requestParams)
+    })))
   } catch (err) {
     error.value = extractError(err)
   }
+}
+
+function displayParams(item) {
+  return item.requestParamsDisplay || formatParams(item.requestParams)
 }
 
 function formatParams(value) {
@@ -95,8 +104,57 @@ function formatParams(value) {
   }
 }
 
-async function copyParams(value) {
-  const text = formatParams(value)
+async function decryptedParamsText(value) {
+  const parsed = parseJson(value)
+  if (!parsed) {
+    return value || '{}'
+  }
+
+  const decrypted = await decryptEncryptedNodes(parsed)
+  return JSON.stringify(decrypted)
+}
+
+async function decryptEncryptedNodes(value) {
+  if (Array.isArray(value)) {
+    return Promise.all(value.map(decryptEncryptedNodes))
+  }
+
+  if (value && typeof value === 'object') {
+    if (isEncryptedEnvelope(value)) {
+      try {
+        return await decryptPayload(value)
+      } catch {
+        return value
+      }
+    }
+
+    const entries = await Promise.all(
+      Object.entries(value).map(async ([key, item]) => [key, await decryptEncryptedNodes(item)])
+    )
+    return Object.fromEntries(entries)
+  }
+
+  return value
+}
+
+function parseJson(value) {
+  if (!value) {
+    return {}
+  }
+
+  try {
+    return JSON.parse(value)
+  } catch {
+    return null
+  }
+}
+
+function isEncryptedEnvelope(value) {
+  return typeof value.iv === 'string' && typeof value.data === 'string'
+}
+
+async function copyParams(item) {
+  const text = displayParams(item)
   error.value = ''
   try {
     await navigator.clipboard.writeText(text)

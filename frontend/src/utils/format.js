@@ -28,9 +28,8 @@ export function extractError(error) {
   if (!data) {
     return error?.message || '请求失败'
   }
-  if (data.details && typeof data.details === 'object') {
-    return Object.values(data.details).join('；')
+  if (data.data && typeof data.data === 'object') {
+    return Object.values(data.data).join('；')
   }
-  return data.message || '请求失败'
+  return data.msg || data.message || '请求失败'
 }
-

@@ -121,7 +121,10 @@ public class AdminOperationLogFilter extends OncePerRequestFilter {
     }
 
     private Object requestBody(ContentCachingRequestWrapper request) {
-        byte[] content = request.getContentAsByteArray();
+        byte[] content = decryptedBody(request);
+        if (content == null) {
+            content = request.getContentAsByteArray();
+        }
         if (content.length == 0) {
             return null;
         }
@@ -140,6 +143,14 @@ public class AdminOperationLogFilter extends OncePerRequestFilter {
         }
 
         return body;
+    }
+
+    private byte[] decryptedBody(HttpServletRequest request) {
+        Object value = request.getAttribute(ApiCryptoFilter.DECRYPTED_BODY_ATTRIBUTE);
+        if (value instanceof byte[] body) {
+            return body;
+        }
+        return null;
     }
 
     private boolean isJsonContent(String contentType) {
