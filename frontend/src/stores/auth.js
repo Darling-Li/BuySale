@@ -16,10 +16,12 @@ export const useAuthStore = defineStore('auth', {
     async login(username, password) {
       this.token = window.btoa(`${username}:${password}`)
       localStorage.setItem('rice_trade_auth_token', this.token)
-      await this.loadMe()
+      await this.loadMe(true)
     },
-    async loadMe() {
-      const response = await http.get('/auth/me')
+    async loadMe(loginRequest = false) {
+      const response = await http.get('/auth/me', {
+        headers: loginRequest ? { 'X-Login-Request': '1' } : {}
+      })
       this.user = response.data
       this.loaded = true
       localStorage.setItem('rice_trade_user', JSON.stringify(this.user))

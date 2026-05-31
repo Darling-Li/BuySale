@@ -2,6 +2,7 @@ import axios from 'axios'
 import { canEncryptBody, decryptPayload, encryptPayload } from '../utils/cryptoEnvelope'
 
 const encryptedHeader = 'X-Encrypted'
+const adminDeviceHeader = 'X-Admin-Device-Token'
 
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -13,6 +14,10 @@ http.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('rice_trade_auth_token')
   if (token) {
     config.headers.Authorization = `Basic ${token}`
+  }
+  const adminDeviceToken = localStorage.getItem('rice_trade_admin_device_token')
+  if (adminDeviceToken) {
+    config.headers[adminDeviceHeader] = adminDeviceToken
   }
   if (shouldEncryptRequest(config)) {
     config.data = await encryptPayload(config.data)
@@ -29,6 +34,10 @@ http.interceptors.response.use(async (response) => {
 }, async (error) => {
   if (error.response) {
     error.response = await decryptResponse(error.response)
+    if (error.response.status === 401) {
+      clearLoginState()
+      redirectToLogin()
+    }
   }
   return Promise.reject(error)
 })
@@ -62,4 +71,17 @@ function isApiResponse(data) {
 function shouldEncryptRequest(config) {
   const method = (config.method || 'get').toLowerCase()
   return ['post', 'put', 'patch'].includes(method) && canEncryptBody(config.data)
+}
+
+function clearLoginState() {
+  localStorage.removeItem('rice_trade_auth_token')
+  localStorage.removeItem('rice_trade_user')
+}
+
+function redirectToLogin() {
+  if (window.location.pathname === '/login') {
+    return
+  }
+  const redirect = encodeURIComponent(`${window.location.pathname}${window.location.search}`)
+  window.location.assign(`/login?redirect=${redirect}`)
 }

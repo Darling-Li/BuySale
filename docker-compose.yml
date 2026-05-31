@@ -17,6 +17,19 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
 
+  redis:
+    image: redis:7.4
+    container_name: rice-trade-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - rice_trade_redis:/data
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+
 volumes:
   rice_trade_mysql:
-
+  rice_trade_redis:

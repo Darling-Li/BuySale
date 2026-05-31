@@ -2,7 +2,10 @@ package com.rice.trade.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rice.trade.config.AccessControlProperties;
+import com.rice.trade.config.AdminDeviceProperties;
 import com.rice.trade.config.ApiCryptoProperties;
+import com.rice.trade.config.DdosProtectionProperties;
+import com.rice.trade.config.TokenSessionProperties;
 import com.rice.trade.dto.ApiResponse;
 import com.rice.trade.mapper.AuditLogMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,15 +16,23 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 @Configuration
-@EnableConfigurationProperties({AccessControlProperties.class, ApiCryptoProperties.class})
+@EnableConfigurationProperties({
+        AccessControlProperties.class,
+        AdminDeviceProperties.class,
+        ApiCryptoProperties.class,
+        DdosProtectionProperties.class,
+        TokenSessionProperties.class
+})
 public class SecurityConfig {
 
     @Bean
@@ -30,7 +41,12 @@ public class SecurityConfig {
             AuditLogMapper auditLogMapper,
             ObjectMapper objectMapper,
             AccessControlProperties accessControlProperties,
-            ApiCryptoProperties apiCryptoProperties
+            AdminDeviceProperties adminDeviceProperties,
+            ApiCryptoProperties apiCryptoProperties,
+            DdosProtectionProperties ddosProtectionProperties,
+            TokenSessionProperties tokenSessionProperties,
+            TokenSessionService tokenSessionService,
+            StringRedisTemplate redisTemplate
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -61,8 +77,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
+                .addFilterBefore(new DdosProtectionFilter(objectMapper, ddosProtectionProperties, redisTemplate), AuthorizationFilter.class)
                 .addFilterBefore(new ClientAccessFilter(objectMapper, accessControlProperties), AuthorizationFilter.class)
                 .addFilterBefore(new ApiCryptoFilter(objectMapper, apiCryptoProperties), AuthorizationFilter.class)
+                .addFilterAfter(new AdminDeviceFilter(objectMapper, adminDeviceProperties), BasicAuthenticationFilter.class)
+                .addFilterAfter(new TokenSessionFilter(objectMapper, tokenSessionProperties, tokenSessionService), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AdminOperationLogFilter(auditLogMapper, objectMapper), AuthorizationFilter.class)
                 .build();
     }

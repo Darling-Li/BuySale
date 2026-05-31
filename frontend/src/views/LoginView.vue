@@ -18,6 +18,10 @@
           <span>密码</span>
           <input v-model="password" autocomplete="current-password" required type="password" />
         </label>
+        <label class="field">
+          <span>管理员设备码</span>
+          <input v-model.trim="adminDeviceToken" autocomplete="off" placeholder="普通用户可不填" type="password" />
+        </label>
         <button class="btn primary" type="submit" :disabled="loading">
           <LogIn :size="17" />
           登录
@@ -40,6 +44,7 @@ const route = useRoute()
 const router = useRouter()
 const username = ref('admin')
 const password = ref('admin123')
+const adminDeviceToken = ref(localStorage.getItem('rice_trade_admin_device_token') || '')
 const loading = ref(false)
 const error = ref('')
 
@@ -47,6 +52,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
+    saveAdminDeviceToken()
     await auth.login(username.value, password.value)
     await router.push(route.query.redirect || '/dashboard')
   } catch (err) {
@@ -56,5 +62,12 @@ async function submit() {
     loading.value = false
   }
 }
-</script>
 
+function saveAdminDeviceToken() {
+  if (adminDeviceToken.value) {
+    localStorage.setItem('rice_trade_admin_device_token', adminDeviceToken.value)
+  } else {
+    localStorage.removeItem('rice_trade_admin_device_token')
+  }
+}
+</script>

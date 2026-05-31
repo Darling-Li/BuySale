@@ -16,12 +16,34 @@ spring:
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:2s}
 
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
 app:
+  ddos:
+    enabled: ${APP_DDOS_ENABLED:false}
+    path-prefixes: ${APP_DDOS_PATH_PREFIXES:/api/}
+    client-ip-headers: ${APP_DDOS_CLIENT_IP_HEADERS:X-Forwarded-For,X-Real-IP}
+    bloom-key: ${APP_DDOS_BLOOM_KEY:rice-trade:ddos:blocked-ip:bloom}
+    counter-prefix: ${APP_DDOS_COUNTER_PREFIX:rice-trade:ddos:req:}
+    bloom-size: ${APP_DDOS_BLOOM_SIZE:8388608}
+    hash-count: ${APP_DDOS_HASH_COUNT:7}
+    window-seconds: ${APP_DDOS_WINDOW_SECONDS:60}
+    max-requests-per-window: ${APP_DDOS_MAX_REQUESTS_PER_WINDOW:300}
+  token-session:
+    enabled: ${APP_TOKEN_SESSION_ENABLED:true}
+    key-prefix: ${APP_TOKEN_SESSION_KEY_PREFIX:rice-trade:auth:token:}
+    ttl-seconds: ${APP_TOKEN_SESSION_TTL_SECONDS:1800}
+    login-header: ${APP_TOKEN_SESSION_LOGIN_HEADER:X-Login-Request}
   cors:
     allowed-origins:
       - http://localhost:5173
@@ -35,6 +57,10 @@ app:
     allowed-regions: ${APP_ACCESS_ALLOWED_REGIONS:}
     trusted-proxy-cidrs: ${APP_ACCESS_TRUSTED_PROXY_CIDRS:127.0.0.1/32,::1/128}
     region-headers: ${APP_ACCESS_REGION_HEADERS:X-Client-Region,X-Client-Province,X-Ali-Region}
+  admin-device:
+    enabled: ${APP_ADMIN_DEVICE_ENABLED:false}
+    header-name: ${APP_ADMIN_DEVICE_HEADER:X-Admin-Device-Token}
+    allowed-token-hashes: ${APP_ADMIN_DEVICE_TOKEN_HASHES:}
   crypto:
     enabled: ${APP_CRYPTO_ENABLED:true}
     shared-key: ${APP_CRYPTO_SHARED_KEY:lmbcddzxj1314}
