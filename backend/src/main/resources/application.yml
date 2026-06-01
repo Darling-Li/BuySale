@@ -62,6 +62,6 @@ app:
     header-name: ${APP_ADMIN_DEVICE_HEADER:X-Admin-Device-Token}
     allowed-token-hashes: ${APP_ADMIN_DEVICE_TOKEN_HASHES:}
   crypto:
-    enabled: ${APP_CRYPTO_ENABLED:true}
+    enabled: ${APP_CRYPTO_ENABLED:false}
     shared-key: ${APP_CRYPTO_SHARED_KEY:lmbcddzxj1314}
     require-encrypted-requests: ${APP_CRYPTO_REQUIRE_ENCRYPTED_REQUESTS:true}

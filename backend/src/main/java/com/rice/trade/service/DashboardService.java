@@ -58,6 +58,7 @@ public class DashboardService {
         List<MonthlyTrendItem> items = new ArrayList<>();
         for (int month = 1; month <= 12; month++) {
             YearMonth current = YearMonth.of(year, month);
+            boolean hasCurrentSaleAmount = saleAmount.containsKey(current);
             BigDecimal currentSaleAmount = value(saleAmount, current);
             items.add(new MonthlyTrendItem(
                     month,
@@ -65,8 +66,8 @@ public class DashboardService {
                     value(purchaseAmount, current),
                     value(saleWeight, current),
                     currentSaleAmount,
-                    rate(currentSaleAmount, value(saleAmount, current.minusYears(1))),
-                    rate(currentSaleAmount, value(saleAmount, current.minusMonths(1)))
+                    hasCurrentSaleAmount ? rate(currentSaleAmount, value(saleAmount, current.minusYears(1))) : null,
+                    hasCurrentSaleAmount ? rate(currentSaleAmount, value(saleAmount, current.minusMonths(1))) : null
             ));
         }
 
