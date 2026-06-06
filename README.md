@@ -128,17 +128,19 @@ mvn spring-boot:run
 
 ### 前后端报文加密
 
-后端和前端使用同一个共享密钥派生 AES-GCM 密钥，当前默认开启；未配置时默认密钥是 `lmbcddzxj1314`，生产环境必须替换：
+后端和前端使用同一个共享密钥派生 AES-GCM 密钥，当前默认关闭；只有显式开启时才会加密请求和响应。生产环境如需启用，必须替换默认密钥：
 
 ```bash
+APP_CRYPTO_ENABLED=true \
 APP_CRYPTO_SHARED_KEY='replace-with-a-long-random-secret' \
 APP_CRYPTO_REQUIRE_ENCRYPTED_REQUESTS=true \
 mvn spring-boot:run
 ```
 
-前端生产构建时使用同一个密钥；如需临时关闭，可设置 `VITE_CRYPTO_ENABLED=false` 和 `APP_CRYPTO_ENABLED=false`：
+前端生产构建时也要显式开启，并使用同一个密钥：
 
 ```bash
+VITE_CRYPTO_ENABLED=true
 VITE_CRYPTO_SHARED_KEY=replace-with-a-long-random-secret
 VITE_CONSOLE_GUARD=true
 ```

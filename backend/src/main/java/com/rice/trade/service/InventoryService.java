@@ -3,7 +3,6 @@ package com.rice.trade.service;
 import com.rice.trade.dto.InventoryResponse;
 import com.rice.trade.entity.InventoryItem;
 import com.rice.trade.entity.Warehouse;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.exception.BusinessException;
 import com.rice.trade.exception.ResourceNotFoundException;
 import com.rice.trade.mapper.InventoryItemMapper;
@@ -17,13 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class InventoryService {
 
     private final InventoryItemMapper inventoryItemMapper;
+    private final ProductCategoryService productCategoryService;
 
-    public InventoryService(InventoryItemMapper inventoryItemMapper) {
+    public InventoryService(InventoryItemMapper inventoryItemMapper, ProductCategoryService productCategoryService) {
         this.inventoryItemMapper = inventoryItemMapper;
+        this.productCategoryService = productCategoryService;
     }
 
     @Transactional(readOnly = true)
-    public List<InventoryResponse> search(ProductType productType, Long warehouseId, String keyword) {
+    public List<InventoryResponse> search(String productType, Long warehouseId, String keyword) {
         return inventoryItemMapper.search(productType, warehouseId, cleanKeyword(keyword)).stream()
                 .map(this::toResponse)
                 .toList();
@@ -32,7 +33,7 @@ public class InventoryService {
     @Transactional
     public InventoryItem increase(
             Warehouse warehouse,
-            ProductType productType,
+            String productType,
             String productName,
             BigDecimal weightJin,
             BigDecimal pricePerJin
@@ -64,7 +65,7 @@ public class InventoryService {
     @Transactional
     public InventoryItem decrease(
             Warehouse warehouse,
-            ProductType productType,
+            String productType,
             String productName,
             BigDecimal weightJin
     ) {
@@ -99,7 +100,7 @@ public class InventoryService {
                 item.getWarehouse().getId(),
                 item.getWarehouse().getName(),
                 item.getProductType(),
-                item.getProductType().getLabel(),
+                productCategoryService.labelOf(item.getProductType()),
                 item.getProductName(),
                 item.getQuantityJin(),
                 item.getAverageCostPerJin(),
@@ -107,7 +108,7 @@ public class InventoryService {
         );
     }
 
-    private InventoryItem createItem(Warehouse warehouse, ProductType productType, String productName) {
+    private InventoryItem createItem(Warehouse warehouse, String productType, String productName) {
         InventoryItem item = new InventoryItem();
         item.setWarehouse(warehouse);
         item.setProductType(productType);

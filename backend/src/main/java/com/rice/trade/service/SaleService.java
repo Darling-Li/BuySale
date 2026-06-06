@@ -5,10 +5,10 @@ import com.rice.trade.dto.SaleResponse;
 import com.rice.trade.dto.UpdateSettlementRequest;
 import com.rice.trade.entity.InventoryItem;
 import com.rice.trade.entity.InventoryTransaction;
+import com.rice.trade.entity.ProductUnit;
 import com.rice.trade.entity.SaleOrder;
 import com.rice.trade.entity.Warehouse;
 import com.rice.trade.enums.BusinessType;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.enums.TransactionType;
 import com.rice.trade.exception.BusinessException;
 import com.rice.trade.exception.ResourceNotFoundException;
@@ -27,21 +27,27 @@ public class SaleService {
     private final InventoryTransactionMapper inventoryTransactionMapper;
     private final WarehouseService warehouseService;
     private final InventoryService inventoryService;
+    private final ProductCategoryService productCategoryService;
+    private final ProductUnitService productUnitService;
 
     public SaleService(
             SaleOrderMapper saleOrderMapper,
             InventoryTransactionMapper inventoryTransactionMapper,
             WarehouseService warehouseService,
-            InventoryService inventoryService
+            InventoryService inventoryService,
+            ProductCategoryService productCategoryService,
+            ProductUnitService productUnitService
     ) {
         this.saleOrderMapper = saleOrderMapper;
         this.inventoryTransactionMapper = inventoryTransactionMapper;
         this.warehouseService = warehouseService;
         this.inventoryService = inventoryService;
+        this.productCategoryService = productCategoryService;
+        this.productUnitService = productUnitService;
     }
 
     @Transactional(readOnly = true)
-    public List<SaleResponse> search(ProductType productType, Long warehouseId, Boolean settled, String keyword) {
+    public List<SaleResponse> search(String productType, Long warehouseId, Boolean settled, String keyword) {
         return saleOrderMapper.search(productType, warehouseId, settled, cleanKeyword(keyword)).stream()
                 .map(this::toResponse)
                 .toList();
@@ -49,17 +55,20 @@ public class SaleService {
 
     @Transactional
     public SaleResponse create(CreateSaleRequest request) {
+        ProductUnit unit = productUnitService.requireEnabledUnit(request.unitName());
         UnitConversion conversion = UnitConversion.from(
                 request.quantity(),
-                request.unitName(),
-                request.unitToJin(),
+                unit.getName(),
+                unit.getUnitToJin(),
                 request.unitPrice(),
                 request.weightJin(),
                 request.pricePerJin()
         );
         InventoryItem inventoryItem = resolveInventoryItem(request);
         Warehouse warehouse = inventoryItem == null ? warehouseService.requireWarehouse(requireWarehouseId(request)) : inventoryItem.getWarehouse();
-        ProductType productType = inventoryItem == null ? request.productType() : inventoryItem.getProductType();
+        String productType = inventoryItem == null
+                ? productCategoryService.requireEnabledCode(request.productType())
+                : productCategoryService.requireEnabledCode(inventoryItem.getProductType());
         String productName = inventoryItem == null ? requireProductName(request.productName()) : inventoryItem.getProductName();
 
         inventoryService.decrease(warehouse, productType, productName, conversion.weightJin());
@@ -117,7 +126,7 @@ public class SaleService {
         return new SaleResponse(
                 order.getId(),
                 order.getProductType(),
-                order.getProductType().getLabel(),
+                productCategoryService.labelOf(order.getProductType()),
                 order.getProductName(),
                 order.getWarehouse().getId(),
                 order.getWarehouse().getName(),
@@ -151,7 +160,7 @@ public class SaleService {
         }
 
         InventoryItem item = inventoryService.requireItem(request.inventoryItemId());
-        if (request.productType() != null && request.productType() != item.getProductType()) {
+        if (request.productType() != null && !productCategoryService.requireEnabledCode(request.productType()).equals(item.getProductType())) {
             throw new BusinessException("库存来源与商品类型不一致");
         }
         return item;

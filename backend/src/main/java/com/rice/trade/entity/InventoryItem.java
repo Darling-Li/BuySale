@@ -1,6 +1,5 @@
 package com.rice.trade.entity;
 
-import com.rice.trade.enums.ProductType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -8,7 +7,7 @@ public class InventoryItem {
 
     private Long id;
     private Warehouse warehouse;
-    private ProductType productType;
+    private String productType;
     private String productName;
     private BigDecimal quantityJin;
     private BigDecimal averageCostPerJin;
@@ -31,11 +30,11 @@ public class InventoryItem {
         this.warehouse = warehouse;
     }
 
-    public ProductType getProductType() {
+    public String getProductType() {
         return productType;
     }
 
-    public void setProductType(ProductType productType) {
+    public void setProductType(String productType) {
         this.productType = productType;
     }
 
@@ -79,4 +78,3 @@ public class InventoryItem {
         this.updatedAt = updatedAt;
     }
 }
-

@@ -39,7 +39,7 @@
 <script setup>
 import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-import { BarChart3, Boxes, ClipboardList, Home, LogOut, ShoppingBag, Truck } from 'lucide-vue-next'
+import { BarChart3, Boxes, ClipboardList, Home, LogOut, PhoneCall, ShoppingBag, Tags, Truck } from 'lucide-vue-next'
 import { useAuthStore } from './stores/auth'
 
 const route = useRoute()
@@ -50,8 +50,10 @@ const navItems = [
   { name: 'dashboard', to: '/dashboard', label: '经营看板', icon: BarChart3 },
   { name: 'purchases', to: '/purchases', label: '采购入库', icon: Truck },
   { name: 'sales', to: '/sales', label: '销售出库', icon: ShoppingBag },
+  { name: 'phoneTransactions', to: '/phone-transactions', label: '手机号查询', icon: PhoneCall },
   { name: 'inventory', to: '/inventory', label: '库存汇总', icon: Boxes },
   { name: 'warehouses', to: '/warehouses', label: '仓库管理', icon: Home },
+  { name: 'baseData', to: '/base-data', label: '基础数据', icon: Tags },
   { name: 'auditLogs', to: '/audit-logs', label: '操作日志', icon: ClipboardList, adminOnly: true }
 ]
 

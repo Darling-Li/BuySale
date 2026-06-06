@@ -1,8 +1,7 @@
-export const unitOptions = [
+export const fallbackUnitOptions = [
   { label: '斤', unitToJin: 1 },
   { label: '公斤', unitToJin: 2 },
-  { label: '吨', unitToJin: 2000 },
-  { label: '袋', unitToJin: 100 }
+  { label: '吨', unitToJin: 2000 }
 ]
 
 export function convertedWeightJin(quantity, unitToJin) {
@@ -17,10 +16,25 @@ export function convertedPricePerJin(unitPrice, unitToJin) {
   return Number(unitPrice || 0) / factor
 }
 
-export function defaultUnit() {
-  return unitOptions[0]
+export function unitPriceFromJinPrice(priceInput, unitToJin, priceMode = 'YUAN_PER_JIN') {
+  const factor = Number(unitToJin || 0)
+  const price = Number(priceInput || 0)
+  const pricePerJin = priceMode === 'MAO_PER_JIN' ? price / 10 : price
+  return pricePerJin * factor
 }
 
-export function unitByLabel(label) {
-  return unitOptions.find((item) => item.label === label) || defaultUnit()
+export function unitOptionFromResponse(item) {
+  return {
+    label: item.name,
+    unitToJin: Number(item.unitToJin || 0),
+    systemBuiltin: item.systemBuiltin
+  }
+}
+
+export function defaultUnit(options = fallbackUnitOptions) {
+  return options[0] || fallbackUnitOptions[0]
+}
+
+export function unitByLabel(label, options = fallbackUnitOptions) {
+  return options.find((item) => item.label === label) || defaultUnit(options)
 }

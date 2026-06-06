@@ -1,7 +1,6 @@
 package com.rice.trade.controller;
 
 import com.rice.trade.dto.MonthlyTrendResponse;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.service.DashboardService;
 import java.time.Year;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,10 +21,9 @@ public class DashboardController {
     @GetMapping("/monthly-trend")
     public MonthlyTrendResponse monthlyTrend(
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) ProductType productType
+            @RequestParam(required = false) String productType
     ) {
         int targetYear = year == null ? Year.now().getValue() : year;
         return dashboardService.monthlyTrend(targetYear, productType);
     }
 }
-

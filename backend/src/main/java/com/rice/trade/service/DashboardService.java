@@ -4,7 +4,6 @@ import com.rice.trade.dto.MonthlyTrendItem;
 import com.rice.trade.dto.MonthlyTrendResponse;
 import com.rice.trade.entity.PurchaseOrder;
 import com.rice.trade.entity.SaleOrder;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.mapper.PurchaseOrderMapper;
 import com.rice.trade.mapper.SaleOrderMapper;
 import java.math.BigDecimal;
@@ -23,14 +22,20 @@ public class DashboardService {
 
     private final PurchaseOrderMapper purchaseOrderMapper;
     private final SaleOrderMapper saleOrderMapper;
+    private final ProductCategoryService productCategoryService;
 
-    public DashboardService(PurchaseOrderMapper purchaseOrderMapper, SaleOrderMapper saleOrderMapper) {
+    public DashboardService(
+            PurchaseOrderMapper purchaseOrderMapper,
+            SaleOrderMapper saleOrderMapper,
+            ProductCategoryService productCategoryService
+    ) {
         this.purchaseOrderMapper = purchaseOrderMapper;
         this.saleOrderMapper = saleOrderMapper;
+        this.productCategoryService = productCategoryService;
     }
 
     @Transactional(readOnly = true)
-    public MonthlyTrendResponse monthlyTrend(int year, ProductType productType) {
+    public MonthlyTrendResponse monthlyTrend(int year, String productType) {
         LocalDate currentYearStart = LocalDate.of(year, 1, 1);
         LocalDate currentYearEnd = LocalDate.of(year, 12, 31);
         LocalDate trendStart = LocalDate.of(year - 1, 1, 1);
@@ -74,7 +79,7 @@ public class DashboardService {
         return new MonthlyTrendResponse(
                 year,
                 productType,
-                productType == null ? "全部" : productType.getLabel(),
+                productType == null ? "全部" : productCategoryService.labelOf(productType),
                 items
         );
     }

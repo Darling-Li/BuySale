@@ -60,11 +60,18 @@
         </label>
         <label class="field">
           <span>每单位折合斤</span>
-          <input v-model.number="form.unitToJin" type="number" min="0.0001" step="0.0001" required />
+          <input v-model.number="form.unitToJin" disabled type="number" min="0.0001" step="0.0001" required />
         </label>
         <label class="field">
-          <span>单位价格</span>
-          <input v-model.number="form.unitPrice" type="number" min="0.0001" step="0.0001" required />
+          <span>单价模式</span>
+          <select v-model="form.priceMode">
+            <option value="YUAN_PER_JIN">一斤多少元</option>
+            <option value="MAO_PER_JIN">一斤多少毛</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>{{ form.priceMode === 'MAO_PER_JIN' ? '每斤毛价' : '每斤元价' }}</span>
+          <input v-model.number="form.priceInput" type="number" min="0.0001" step="0.0001" required />
         </label>
         <label class="field wide">
           <span>换算结果</span>
@@ -169,16 +176,18 @@ import { tradeApi } from '../api/trade'
 import { useAuthStore } from '../stores/auth'
 import { useReferenceStore } from '../stores/reference'
 import { extractError, money, number, today } from '../utils/format'
-import { convertedPricePerJin, convertedWeightJin, defaultUnit, unitByLabel, unitOptions } from '../utils/units'
+import {
+  convertedPricePerJin,
+  convertedWeightJin,
+  defaultUnit,
+  fallbackUnitOptions,
+  unitByLabel,
+  unitOptionFromResponse,
+  unitPriceFromJinPrice
+} from '../utils/units'
 
 const reference = useReferenceStore()
 const auth = useAuthStore()
-const defaultNames = {
-  RICE: '稻谷',
-  SEED: '稻种',
-  FERTILIZER: '化肥'
-}
-
 const records = ref([])
 const saving = ref(false)
 const message = ref('')
@@ -188,18 +197,26 @@ const filters = ref({
   warehouseId: '',
   keyword: ''
 })
+const unitOptions = computed(() => {
+  return reference.productUnits.length > 0
+    ? reference.productUnits.map(unitOptionFromResponse)
+    : fallbackUnitOptions
+})
 const form = ref(defaultForm())
 const weightJin = computed(() => convertedWeightJin(form.value.quantity, form.value.unitToJin))
-const pricePerJin = computed(() => convertedPricePerJin(form.value.unitPrice, form.value.unitToJin))
+const unitPrice = computed(() => unitPriceFromJinPrice(form.value.priceInput, form.value.unitToJin, form.value.priceMode))
+const pricePerJin = computed(() => convertedPricePerJin(unitPrice.value, form.value.unitToJin))
 const conversionText = computed(() => {
-  return `${number(weightJin.value)} 斤 / ¥${money(pricePerJin.value)} 每斤`
+  return `${number(weightJin.value)} 斤 / ¥${money(pricePerJin.value)} 每斤 / ¥${money(unitPrice.value)} 每${form.value.unitName || '单位'}`
 })
 
 function defaultForm() {
-  const unit = defaultUnit()
+  const unit = defaultUnit(unitOptions.value)
+  const productType = reference.productTypes[0]?.value || 'RICE'
+  const productName = reference.productTypes[0]?.label || '稻谷'
   return {
-    productType: 'RICE',
-    productName: '稻谷',
+    productType,
+    productName,
     warehouseId: '',
     counterpartyName: '',
     counterpartyPhone: '',
@@ -207,7 +224,8 @@ function defaultForm() {
     quantity: '',
     unitName: unit.label,
     unitToJin: unit.unitToJin,
-    unitPrice: '',
+    priceMode: 'YUAN_PER_JIN',
+    priceInput: '',
     purchasedAt: today(),
     remark: ''
   }
@@ -218,11 +236,12 @@ function cleanParams(values) {
 }
 
 function applyDefaultName() {
-  form.value.productName = defaultNames[form.value.productType] || ''
+  const selected = reference.productTypes.find((item) => item.value === form.value.productType)
+  form.value.productName = selected?.label || ''
 }
 
 function applyUnitPreset() {
-  form.value.unitToJin = unitByLabel(form.value.unitName).unitToJin
+  form.value.unitToJin = unitByLabel(form.value.unitName, unitOptions.value).unitToJin
 }
 
 function resetForm() {
@@ -242,10 +261,20 @@ async function submit() {
   message.value = ''
   try {
     await tradeApi.createPurchase({
-      ...form.value,
+      productType: form.value.productType,
+      productName: form.value.productName,
       warehouseId: Number(form.value.warehouseId),
+      counterpartyName: form.value.counterpartyName,
+      counterpartyPhone: form.value.counterpartyPhone,
+      counterpartyAddress: form.value.counterpartyAddress,
+      quantity: form.value.quantity,
+      unitName: form.value.unitName,
+      unitToJin: form.value.unitToJin,
+      unitPrice: unitPrice.value,
       weightJin: weightJin.value,
-      pricePerJin: pricePerJin.value
+      pricePerJin: pricePerJin.value,
+      purchasedAt: form.value.purchasedAt,
+      remark: form.value.remark
     })
     message.value = '采购已保存，库存已入库'
     resetForm()
@@ -265,6 +294,17 @@ watch(() => reference.warehouses, (warehouses) => {
 
 onMounted(async () => {
   await reference.loadAll()
+  if (!reference.productTypes.some((item) => item.value === form.value.productType)) {
+    form.value.productType = reference.productTypes[0]?.value || ''
+    applyDefaultName()
+  }
+  if (!unitOptions.value.some((item) => item.label === form.value.unitName)) {
+    const unit = defaultUnit(unitOptions.value)
+    form.value.unitName = unit.label
+    form.value.unitToJin = unit.unitToJin
+  } else {
+    applyUnitPreset()
+  }
   if (!form.value.warehouseId && reference.warehouses.length > 0) {
     form.value.warehouseId = reference.warehouses[0].id
   }

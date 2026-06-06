@@ -1,7 +1,6 @@
 package com.rice.trade.mapper;
 
 import com.rice.trade.entity.PurchaseOrder;
-import com.rice.trade.enums.ProductType;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
@@ -39,7 +38,7 @@ public interface PurchaseOrderMapper {
             """)
     @ResultMap("purchaseOrderMap")
     List<PurchaseOrder> search(
-            @Param("productType") ProductType productType,
+            @Param("productType") String productType,
             @Param("warehouseId") Long warehouseId,
             @Param("keyword") String keyword
     );
@@ -51,6 +50,14 @@ public interface PurchaseOrderMapper {
                     one = @One(select = "com.rice.trade.mapper.WarehouseMapper.findById"))
     })
     PurchaseOrder findById(Long id);
+
+    @Select("""
+            select * from purchase_orders
+            where counterparty_phone = #{phone}
+            order by purchased_at desc, id desc
+            """)
+    @ResultMap("purchaseOrderMap")
+    List<PurchaseOrder> findByCounterpartyPhone(@Param("phone") String phone);
 
     @Select("""
             <script>
@@ -65,7 +72,7 @@ public interface PurchaseOrderMapper {
     List<PurchaseOrder> findForTrend(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("productType") ProductType productType
+            @Param("productType") String productType
     );
 
     @Insert("""

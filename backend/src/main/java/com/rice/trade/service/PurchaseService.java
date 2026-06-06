@@ -3,10 +3,10 @@ package com.rice.trade.service;
 import com.rice.trade.dto.CreatePurchaseRequest;
 import com.rice.trade.dto.PurchaseResponse;
 import com.rice.trade.entity.InventoryTransaction;
+import com.rice.trade.entity.ProductUnit;
 import com.rice.trade.entity.PurchaseOrder;
 import com.rice.trade.entity.Warehouse;
 import com.rice.trade.enums.BusinessType;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.enums.TransactionType;
 import com.rice.trade.mapper.InventoryTransactionMapper;
 import com.rice.trade.mapper.PurchaseOrderMapper;
@@ -23,21 +23,27 @@ public class PurchaseService {
     private final InventoryTransactionMapper inventoryTransactionMapper;
     private final WarehouseService warehouseService;
     private final InventoryService inventoryService;
+    private final ProductCategoryService productCategoryService;
+    private final ProductUnitService productUnitService;
 
     public PurchaseService(
             PurchaseOrderMapper purchaseOrderMapper,
             InventoryTransactionMapper inventoryTransactionMapper,
             WarehouseService warehouseService,
-            InventoryService inventoryService
+            InventoryService inventoryService,
+            ProductCategoryService productCategoryService,
+            ProductUnitService productUnitService
     ) {
         this.purchaseOrderMapper = purchaseOrderMapper;
         this.inventoryTransactionMapper = inventoryTransactionMapper;
         this.warehouseService = warehouseService;
         this.inventoryService = inventoryService;
+        this.productCategoryService = productCategoryService;
+        this.productUnitService = productUnitService;
     }
 
     @Transactional(readOnly = true)
-    public List<PurchaseResponse> search(ProductType productType, Long warehouseId, String keyword) {
+    public List<PurchaseResponse> search(String productType, Long warehouseId, String keyword) {
         return purchaseOrderMapper.search(productType, warehouseId, cleanKeyword(keyword)).stream()
                 .map(this::toResponse)
                 .toList();
@@ -46,18 +52,20 @@ public class PurchaseService {
     @Transactional
     public PurchaseResponse create(CreatePurchaseRequest request) {
         Warehouse warehouse = warehouseService.requireWarehouse(request.warehouseId());
+        ProductUnit unit = productUnitService.requireEnabledUnit(request.unitName());
         UnitConversion conversion = UnitConversion.from(
                 request.quantity(),
-                request.unitName(),
-                request.unitToJin(),
+                unit.getName(),
+                unit.getUnitToJin(),
                 request.unitPrice(),
                 request.weightJin(),
                 request.pricePerJin()
         );
         String productName = normalizeName(request.productName());
+        String productType = productCategoryService.requireEnabledCode(request.productType());
 
         PurchaseOrder order = new PurchaseOrder();
-        order.setProductType(request.productType());
+        order.setProductType(productType);
         order.setProductName(productName);
         order.setWarehouse(warehouse);
         order.setCounterpartyName(normalizeName(request.counterpartyName()));
@@ -75,7 +83,7 @@ public class PurchaseService {
         purchaseOrderMapper.insert(order);
         PurchaseOrder saved = purchaseOrderMapper.findById(order.getId());
 
-        inventoryService.increase(warehouse, request.productType(), productName, conversion.weightJin(), conversion.pricePerJin());
+        inventoryService.increase(warehouse, productType, productName, conversion.weightJin(), conversion.pricePerJin());
         inventoryTransactionMapper.insert(transaction(saved, warehouse));
         return toResponse(purchaseOrderMapper.findById(saved.getId()));
     }
@@ -99,7 +107,7 @@ public class PurchaseService {
         return new PurchaseResponse(
                 order.getId(),
                 order.getProductType(),
-                order.getProductType().getLabel(),
+                productCategoryService.labelOf(order.getProductType()),
                 order.getProductName(),
                 order.getWarehouse().getId(),
                 order.getWarehouse().getName(),

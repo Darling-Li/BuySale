@@ -1,7 +1,6 @@
 package com.rice.trade.mapper;
 
 import com.rice.trade.entity.InventoryItem;
-import com.rice.trade.enums.ProductType;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -35,7 +34,7 @@ public interface InventoryItemMapper {
             """)
     @ResultMap("inventoryItemMap")
     List<InventoryItem> search(
-            @Param("productType") ProductType productType,
+            @Param("productType") String productType,
             @Param("warehouseId") Long warehouseId,
             @Param("keyword") String keyword
     );
@@ -57,7 +56,7 @@ public interface InventoryItemMapper {
     @ResultMap("inventoryItemMap")
     InventoryItem findByScope(
             @Param("warehouseId") Long warehouseId,
-            @Param("productType") ProductType productType,
+            @Param("productType") String productType,
             @Param("productName") String productName
     );
 
@@ -83,4 +82,3 @@ public interface InventoryItemMapper {
             """)
     int update(InventoryItem item);
 }
-

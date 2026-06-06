@@ -3,7 +3,7 @@ const textDecoder = new TextDecoder()
 const defaultSharedKey = 'lmbcddzxj1314'
 
 const cryptoConfig = {
-  enabled: import.meta.env.VITE_CRYPTO_ENABLED !== 'false',
+  enabled: import.meta.env.VITE_CRYPTO_ENABLED === 'true',
   sharedKey: import.meta.env.VITE_CRYPTO_SHARED_KEY || defaultSharedKey
 }
 

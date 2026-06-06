@@ -1,6 +1,5 @@
 package com.rice.trade.entity;
 
-import com.rice.trade.enums.ProductType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,7 +7,7 @@ import java.time.LocalDateTime;
 public class PurchaseOrder {
 
     private Long id;
-    private ProductType productType;
+    private String productType;
     private String productName;
     private Warehouse warehouse;
     private String counterpartyName;
@@ -34,11 +33,11 @@ public class PurchaseOrder {
         this.id = id;
     }
 
-    public ProductType getProductType() {
+    public String getProductType() {
         return productType;
     }
 
-    public void setProductType(ProductType productType) {
+    public void setProductType(String productType) {
         this.productType = productType;
     }
 

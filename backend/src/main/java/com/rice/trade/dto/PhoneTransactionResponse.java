@@ -4,16 +4,19 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public record PurchaseResponse(
-        Long id,
+public record PhoneTransactionResponse(
+        String businessType,
+        String businessTypeLabel,
+        Long businessId,
+        LocalDate transactionDate,
         String productType,
         String productTypeLabel,
         String productName,
         Long warehouseId,
         String warehouseName,
-        String counterpartyName,
-        String counterpartyPhone,
-        String counterpartyAddress,
+        String contactName,
+        String contactPhone,
+        String contactAddress,
         BigDecimal quantity,
         String unitName,
         BigDecimal unitToJin,
@@ -21,7 +24,7 @@ public record PurchaseResponse(
         BigDecimal weightJin,
         BigDecimal pricePerJin,
         BigDecimal totalAmount,
-        LocalDate purchasedAt,
+        Boolean settled,
         String remark,
         LocalDateTime createdAt
 ) {

@@ -2,7 +2,6 @@ package com.rice.trade.controller;
 
 import com.rice.trade.dto.CreatePurchaseRequest;
 import com.rice.trade.dto.PurchaseResponse;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.service.PurchaseService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -27,7 +26,7 @@ public class PurchaseController {
 
     @GetMapping
     public List<PurchaseResponse> search(
-            @RequestParam(required = false) ProductType productType,
+            @RequestParam(required = false) String productType,
             @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) String keyword
     ) {
@@ -40,4 +39,3 @@ public class PurchaseController {
         return purchaseService.create(request);
     }
 }
-

@@ -612,7 +612,7 @@ tbody tr:hover {
   }
 
   .nav-list {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
   }
 
   .nav-list a {

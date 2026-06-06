@@ -1,7 +1,6 @@
 package com.rice.trade.entity;
 
 import com.rice.trade.enums.BusinessType;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.enums.TransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,7 +11,7 @@ public class InventoryTransaction {
     private TransactionType transactionType;
     private BusinessType businessType;
     private Long businessId;
-    private ProductType productType;
+    private String productType;
     private String productName;
     private Warehouse warehouse;
     private BigDecimal weightJin;
@@ -52,11 +51,11 @@ public class InventoryTransaction {
         this.businessId = businessId;
     }
 
-    public ProductType getProductType() {
+    public String getProductType() {
         return productType;
     }
 
-    public void setProductType(ProductType productType) {
+    public void setProductType(String productType) {
         this.productType = productType;
     }
 
@@ -108,4 +107,3 @@ public class InventoryTransaction {
         this.remark = remark;
     }
 }
-

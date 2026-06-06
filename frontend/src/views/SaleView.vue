@@ -56,7 +56,7 @@
         </label>
         <label class="field">
           <span>每单位折合斤</span>
-          <input v-model.number="form.unitToJin" type="number" min="0.0001" step="0.0001" required />
+          <input v-model.number="form.unitToJin" disabled type="number" min="0.0001" step="0.0001" required />
         </label>
         <label class="field">
           <span>单位价格</span>
@@ -187,16 +187,17 @@ import { tradeApi } from '../api/trade'
 import { useAuthStore } from '../stores/auth'
 import { useReferenceStore } from '../stores/reference'
 import { extractError, money, number, today } from '../utils/format'
-import { convertedPricePerJin, convertedWeightJin, defaultUnit, unitByLabel, unitOptions } from '../utils/units'
+import {
+  convertedPricePerJin,
+  convertedWeightJin,
+  defaultUnit,
+  fallbackUnitOptions,
+  unitByLabel,
+  unitOptionFromResponse
+} from '../utils/units'
 
 const reference = useReferenceStore()
 const auth = useAuthStore()
-const defaultNames = {
-  RICE: '稻谷',
-  SEED: '稻种',
-  FERTILIZER: '化肥'
-}
-
 const records = ref([])
 const inventoryOptions = ref([])
 const saving = ref(false)
@@ -208,6 +209,11 @@ const filters = ref({
   settled: '',
   keyword: ''
 })
+const unitOptions = computed(() => {
+  return reference.productUnits.length > 0
+    ? reference.productUnits.map(unitOptionFromResponse)
+    : fallbackUnitOptions
+})
 const form = ref(defaultForm())
 const weightJin = computed(() => convertedWeightJin(form.value.quantity, form.value.unitToJin))
 const pricePerJin = computed(() => convertedPricePerJin(form.value.unitPrice, form.value.unitToJin))
@@ -216,11 +222,13 @@ const conversionText = computed(() => {
 })
 
 function defaultForm() {
-  const unit = defaultUnit()
+  const unit = defaultUnit(unitOptions.value)
+  const productType = reference.productTypes[0]?.value || 'RICE'
+  const productName = reference.productTypes[0]?.label || ''
   return {
-    productType: 'RICE',
+    productType,
     inventoryItemId: '',
-    productName: '',
+    productName,
     warehouseId: '',
     buyerName: '',
     buyerPhone: '',
@@ -241,19 +249,20 @@ function cleanParams(values) {
 
 async function handleProductTypeChange() {
   form.value.inventoryItemId = ''
-  form.value.productName = defaultNames[form.value.productType] || ''
+  form.value.productName = productTypeLabel(form.value.productType)
   form.value.warehouseId = ''
   await loadInventoryOptions()
   applyFirstInventory()
 }
 
 function applyUnitPreset() {
-  form.value.unitToJin = unitByLabel(form.value.unitName).unitToJin
+  form.value.unitToJin = unitByLabel(form.value.unitName, unitOptions.value).unitToJin
 }
 
 async function resetForm() {
-  const productType = form.value.productType || 'RICE'
+  const productType = form.value.productType || reference.productTypes[0]?.value || ''
   form.value = { ...defaultForm(), productType }
+  form.value.productName = productTypeLabel(productType)
   error.value = ''
   message.value = ''
   await loadInventoryOptions()
@@ -283,7 +292,7 @@ function applyFirstInventory() {
 function applyInventorySelection() {
   const selected = inventoryOptions.value.find((item) => item.id === Number(form.value.inventoryItemId))
   if (!selected) {
-    form.value.productName = defaultNames[form.value.productType] || ''
+    form.value.productName = productTypeLabel(form.value.productType)
     form.value.warehouseId = ''
     return
   }
@@ -325,8 +334,23 @@ async function toggleSettlement(item, event) {
   }
 }
 
+function productTypeLabel(value) {
+  return reference.productTypes.find((item) => item.value === value)?.label || ''
+}
+
 onMounted(async () => {
   await reference.loadAll()
+  if (!reference.productTypes.some((item) => item.value === form.value.productType)) {
+    form.value.productType = reference.productTypes[0]?.value || ''
+    form.value.productName = productTypeLabel(form.value.productType)
+  }
+  if (!unitOptions.value.some((item) => item.label === form.value.unitName)) {
+    const unit = defaultUnit(unitOptions.value)
+    form.value.unitName = unit.label
+    form.value.unitToJin = unit.unitToJin
+  } else {
+    applyUnitPreset()
+  }
   await loadInventoryOptions()
   applyFirstInventory()
   await loadSales()

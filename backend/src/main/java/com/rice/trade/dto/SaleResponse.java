@@ -1,13 +1,12 @@
 package com.rice.trade.dto;
 
-import com.rice.trade.enums.ProductType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record SaleResponse(
         Long id,
-        ProductType productType,
+        String productType,
         String productTypeLabel,
         String productName,
         Long warehouseId,

@@ -1,7 +1,6 @@
 package com.rice.trade.mapper;
 
 import com.rice.trade.entity.SaleOrder;
-import com.rice.trade.enums.ProductType;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
@@ -43,7 +42,7 @@ public interface SaleOrderMapper {
             """)
     @ResultMap("saleOrderMap")
     List<SaleOrder> search(
-            @Param("productType") ProductType productType,
+            @Param("productType") String productType,
             @Param("warehouseId") Long warehouseId,
             @Param("settled") Boolean settled,
             @Param("keyword") String keyword
@@ -58,6 +57,14 @@ public interface SaleOrderMapper {
     SaleOrder findById(Long id);
 
     @Select("""
+            select * from sale_orders
+            where buyer_phone = #{phone}
+            order by sold_at desc, id desc
+            """)
+    @ResultMap("saleOrderMap")
+    List<SaleOrder> findByBuyerPhone(@Param("phone") String phone);
+
+    @Select("""
             <script>
             select * from sale_orders
             where sold_at between #{startDate} and #{endDate}
@@ -70,7 +77,7 @@ public interface SaleOrderMapper {
     List<SaleOrder> findForTrend(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("productType") ProductType productType
+            @Param("productType") String productType
     );
 
     @Insert("""

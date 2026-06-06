@@ -3,7 +3,6 @@ package com.rice.trade.controller;
 import com.rice.trade.dto.CreateSaleRequest;
 import com.rice.trade.dto.SaleResponse;
 import com.rice.trade.dto.UpdateSettlementRequest;
-import com.rice.trade.enums.ProductType;
 import com.rice.trade.service.SaleService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -30,7 +29,7 @@ public class SaleController {
 
     @GetMapping
     public List<SaleResponse> search(
-            @RequestParam(required = false) ProductType productType,
+            @RequestParam(required = false) String productType,
             @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) Boolean settled,
             @RequestParam(required = false) String keyword
@@ -52,4 +51,3 @@ public class SaleController {
         return saleService.updateSettlement(id, request);
     }
 }
-

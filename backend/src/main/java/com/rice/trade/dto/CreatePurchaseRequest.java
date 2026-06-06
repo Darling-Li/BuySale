@@ -1,6 +1,5 @@
 package com.rice.trade.dto;
 
-import com.rice.trade.enums.ProductType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,8 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CreatePurchaseRequest(
-        @NotNull(message = "商品类型不能为空")
-        ProductType productType,
+        @NotBlank(message = "商品类型不能为空")
+        @Size(max = 32, message = "商品类型不能超过32个字符")
+        String productType,
 
         @NotBlank(message = "商品名称不能为空")
         @Size(max = 80, message = "商品名称不能超过80个字符")
