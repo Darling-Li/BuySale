@@ -67,13 +67,6 @@
           <input :value="conversionText" disabled />
         </label>
         <label class="field">
-          <span>是否结账</span>
-          <select v-model="form.settled">
-            <option :value="false">未结账</option>
-            <option :value="true">已结账</option>
-          </select>
-        </label>
-        <label class="field">
           <span>备注</span>
           <input v-model.trim="form.remark" />
         </label>
@@ -112,14 +105,6 @@
         </select>
       </label>
       <label class="field">
-        <span>结算</span>
-        <select v-model="filters.settled">
-          <option value="">全部</option>
-          <option :value="true">已结账</option>
-          <option :value="false">未结账</option>
-        </select>
-      </label>
-      <label class="field">
         <span>关键词</span>
         <input v-model.trim="filters.keyword" placeholder="商品、姓名、电话" @keyup.enter="loadSales" />
       </label>
@@ -128,6 +113,46 @@
         查询
       </button>
     </div>
+
+    <form v-if="auth.isAdmin && settlementForm.saleId" class="form-panel" @submit.prevent="submitSettlement">
+      <div class="form-title">
+        <h2>登记结账</h2>
+        <span class="tag amber">{{ settlementForm.saleLabel }}</span>
+      </div>
+      <div class="form-grid">
+        <label class="field">
+          <span>结账金额</span>
+          <input v-model.number="settlementForm.amount" type="number" min="0.01" step="0.01" required />
+        </label>
+        <label class="field">
+          <span>结账渠道</span>
+          <select v-model="settlementForm.channel" required>
+            <option v-for="item in settlementChannels" :key="item.value" :value="item.value">
+              {{ item.label }}
+            </option>
+          </select>
+        </label>
+        <label class="field">
+          <span>结账时间</span>
+          <input v-model="settlementForm.settledAt" type="datetime-local" required />
+        </label>
+        <label class="field wide">
+          <span>备注</span>
+          <input v-model.trim="settlementForm.remark" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="submit" :disabled="settlementSaving">
+          <Save :size="17" />
+          保存结账
+        </button>
+        <button class="btn secondary" type="button" @click="resetSettlement">
+          <RotateCcw :size="17" />
+          取消
+        </button>
+        <span class="message" :class="{ error: !!settlementError }">{{ settlementError || settlementMessage }}</span>
+      </div>
+    </form>
 
     <div class="table-panel">
       <div class="table-title">
@@ -147,13 +172,16 @@
               <th>重量</th>
               <th>单价</th>
               <th>金额</th>
-              <th>结算</th>
+              <th>结账金额</th>
+              <th>未结账</th>
+              <th>结账渠道</th>
+              <th v-if="auth.isAdmin">操作</th>
               <th>住址</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="records.length === 0">
-              <td class="empty-row" colspan="11">暂无销售记录</td>
+              <td class="empty-row" :colspan="auth.isAdmin ? 14 : 13">暂无销售记录</td>
             </tr>
             <tr v-for="item in records" :key="item.id">
               <td>{{ item.soldAt }}</td>
@@ -165,13 +193,18 @@
               <td>{{ number(item.quantity || item.weightJin) }} {{ item.unitName || '斤' }}</td>
               <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
               <td>¥{{ money(item.totalAmount) }}</td>
-              <td>
-                <label class="settlement">
-                  <input :checked="item.settled" :disabled="!auth.isAdmin" type="checkbox" @change="toggleSettlement(item, $event)" />
-                  <span :class="['tag', item.settled ? '' : 'red']">{{ item.settled ? '已结账' : '未结账' }}</span>
-                </label>
+              <td>¥{{ money(item.settledAmount) }}</td>
+              <td>¥{{ money(item.unsettledAmount) }}</td>
+              <td>{{ item.settlementChannels || '-' }}</td>
+              <td v-if="auth.isAdmin">
+                <button class="btn ghost" type="button" :disabled="Number(item.unsettledAmount || 0) <= 0" @click="startSettlement(item)">
+                  <Save :size="16" />
+                  登记
+                </button>
               </td>
-              <td>{{ item.buyerAddress || '-' }}</td>
+              <td>
+                {{ item.buyerAddress || '-' }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -201,20 +234,28 @@ const auth = useAuthStore()
 const records = ref([])
 const inventoryOptions = ref([])
 const saving = ref(false)
+const settlementSaving = ref(false)
 const message = ref('')
 const error = ref('')
+const settlementMessage = ref('')
+const settlementError = ref('')
 const filters = ref({
   productType: '',
   warehouseId: '',
-  settled: '',
   keyword: ''
 })
+const settlementChannels = [
+  { value: 'BANK_CARD', label: '银行卡' },
+  { value: 'TRANSFER', label: '微信/支付宝转账' },
+  { value: 'CASH', label: '现金' }
+]
 const unitOptions = computed(() => {
   return reference.productUnits.length > 0
     ? reference.productUnits.map(unitOptionFromResponse)
     : fallbackUnitOptions
 })
 const form = ref(defaultForm())
+const settlementForm = ref(defaultSettlementForm())
 const weightJin = computed(() => convertedWeightJin(form.value.quantity, form.value.unitToJin))
 const pricePerJin = computed(() => convertedPricePerJin(form.value.unitPrice, form.value.unitToJin))
 const conversionText = computed(() => {
@@ -238,7 +279,17 @@ function defaultForm() {
     unitToJin: unit.unitToJin,
     unitPrice: '',
     soldAt: today(),
-    settled: false,
+    remark: ''
+  }
+}
+
+function defaultSettlementForm() {
+  return {
+    saleId: null,
+    saleLabel: '',
+    amount: '',
+    channel: 'TRANSFER',
+    settledAt: nowDateTimeLocal(),
     remark: ''
   }
 }
@@ -271,6 +322,25 @@ async function resetForm() {
 
 async function loadSales() {
   records.value = await tradeApi.sales(cleanParams(filters.value))
+}
+
+function startSettlement(item) {
+  settlementForm.value = {
+    saleId: item.id,
+    saleLabel: `${item.buyerName} / ${item.productName}`,
+    amount: Number(item.unsettledAmount || 0),
+    channel: 'TRANSFER',
+    settledAt: nowDateTimeLocal(),
+    remark: ''
+  }
+  settlementError.value = ''
+  settlementMessage.value = ''
+}
+
+function resetSettlement() {
+  settlementForm.value = defaultSettlementForm()
+  settlementError.value = ''
+  settlementMessage.value = ''
 }
 
 async function loadInventoryOptions() {
@@ -323,19 +393,38 @@ async function submit() {
   }
 }
 
-async function toggleSettlement(item, event) {
-  const settled = event.target.checked
+async function submitSettlement() {
+  settlementSaving.value = true
+  settlementError.value = ''
+  settlementMessage.value = ''
   try {
-    const updated = await tradeApi.updateSettlement(item.id, settled)
-    Object.assign(item, updated)
+    const updated = await tradeApi.createSaleSettlement(settlementForm.value.saleId, {
+      amount: settlementForm.value.amount,
+      channel: settlementForm.value.channel,
+      settledAt: settlementForm.value.settledAt,
+      remark: settlementForm.value.remark
+    })
+    const index = records.value.findIndex((item) => item.id === updated.id)
+    if (index >= 0) {
+      records.value[index] = updated
+    }
+    settlementMessage.value = '结账已登记'
+    resetSettlement()
   } catch (err) {
-    event.target.checked = item.settled
-    error.value = extractError(err)
+    settlementError.value = extractError(err)
+  } finally {
+    settlementSaving.value = false
   }
 }
 
 function productTypeLabel(value) {
   return reference.productTypes.find((item) => item.value === value)?.label || ''
+}
+
+function nowDateTimeLocal() {
+  const date = new Date()
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
+  return date.toISOString().slice(0, 16)
 }
 
 onMounted(async () => {

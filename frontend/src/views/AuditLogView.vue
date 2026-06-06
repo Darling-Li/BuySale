@@ -36,7 +36,7 @@
               <td class="empty-row" colspan="8">暂无操作日志</td>
             </tr>
             <tr v-for="item in records" :key="item.id">
-              <td>{{ item.occurredAt }}</td>
+              <td>{{ dateTime(item.occurredAt) }}</td>
               <td>{{ item.username }}</td>
               <td><span class="tag">{{ item.roleName }}</span></td>
               <td>{{ item.actionName }}</td>
@@ -68,7 +68,7 @@ import { onMounted, ref } from 'vue'
 import { RefreshCcw } from 'lucide-vue-next'
 import { tradeApi } from '../api/trade'
 import { decryptPayload } from '../utils/cryptoEnvelope'
-import { extractError } from '../utils/format'
+import { dateTime, extractError } from '../utils/format'
 
 const records = ref([])
 const error = ref('')

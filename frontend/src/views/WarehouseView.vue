@@ -72,7 +72,7 @@
               <td>{{ item.contactName || '-' }}</td>
               <td>{{ item.contactPhone || '-' }}</td>
               <td>{{ item.remark || '-' }}</td>
-              <td>{{ item.updatedAt }}</td>
+              <td>{{ dateTime(item.updatedAt) }}</td>
               <td v-if="auth.isAdmin">
                 <button class="btn ghost" type="button" @click="edit(item)">
                   <Pencil :size="16" />
@@ -93,7 +93,7 @@ import { Pencil, RotateCcw, Save } from 'lucide-vue-next'
 import { tradeApi } from '../api/trade'
 import { useAuthStore } from '../stores/auth'
 import { useReferenceStore } from '../stores/reference'
-import { extractError } from '../utils/format'
+import { dateTime, extractError } from '../utils/format'
 
 const reference = useReferenceStore()
 const auth = useAuthStore()

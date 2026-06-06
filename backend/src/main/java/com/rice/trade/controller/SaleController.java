@@ -1,6 +1,7 @@
 package com.rice.trade.controller;
 
 import com.rice.trade.dto.CreateSaleRequest;
+import com.rice.trade.dto.CreateSaleSettlementRequest;
 import com.rice.trade.dto.SaleResponse;
 import com.rice.trade.dto.UpdateSettlementRequest;
 import com.rice.trade.service.SaleService;
@@ -41,6 +42,15 @@ public class SaleController {
     @ResponseStatus(HttpStatus.CREATED)
     public SaleResponse create(@Valid @RequestBody CreateSaleRequest request) {
         return saleService.create(request);
+    }
+
+    @PostMapping("/{id}/settlements")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SaleResponse createSettlement(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateSaleSettlementRequest request
+    ) {
+        return saleService.createSettlement(id, request);
     }
 
     @PatchMapping("/{id}/settlement")

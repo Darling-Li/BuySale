@@ -82,7 +82,7 @@
                   {{ stockStatus(item.quantityJin) }}
                 </span>
               </td>
-              <td>{{ item.updatedAt }}</td>
+              <td>{{ dateTime(item.updatedAt) }}</td>
             </tr>
           </tbody>
         </table>
@@ -96,7 +96,7 @@ import { computed, onMounted, ref } from 'vue'
 import { Search } from 'lucide-vue-next'
 import { tradeApi } from '../api/trade'
 import { useReferenceStore } from '../stores/reference'
-import { extractError, money, number } from '../utils/format'
+import { dateTime, extractError, money, number } from '../utils/format'
 
 const reference = useReferenceStore()
 const records = ref([])
@@ -139,4 +139,3 @@ onMounted(async () => {
   await loadInventory()
 })
 </script>
-

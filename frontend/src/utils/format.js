@@ -2,11 +2,27 @@ export function today() {
   return new Date().toISOString().slice(0, 10)
 }
 
+export function dateTime(value) {
+  if (!value) {
+    return '-'
+  }
+  if (Array.isArray(value)) {
+    const [year, month, day, hour = 0, minute = 0, second = 0] = value
+    return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`
+  }
+  const normalized = String(value).replace('T', ' ').slice(0, 19)
+  return normalized.length === 16 ? `${normalized}:00` : normalized
+}
+
 export function money(value) {
   return Number(value || 0).toLocaleString('zh-CN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })
+}
+
+function pad(value) {
+  return String(value ?? 0).padStart(2, '0')
 }
 
 export function number(value, digits = 2) {

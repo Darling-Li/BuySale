@@ -75,7 +75,7 @@
               <td>{{ item.sortOrder }}</td>
               <td><span :class="['tag', item.enabled ? '' : 'red']">{{ item.enabled ? '启用' : '禁用' }}</span></td>
               <td>{{ item.remark || '-' }}</td>
-              <td>{{ item.updatedAt }}</td>
+              <td>{{ dateTime(item.updatedAt) }}</td>
               <td v-if="auth.isAdmin">
                 <button class="btn ghost" type="button" @click="editCategory(item)">
                   <Pencil :size="16" />
@@ -163,7 +163,7 @@
               <td>{{ item.sortOrder }}</td>
               <td><span :class="['tag', item.enabled ? '' : 'red']">{{ item.enabled ? '启用' : '禁用' }}</span></td>
               <td>{{ item.remark || '-' }}</td>
-              <td>{{ item.updatedAt }}</td>
+              <td>{{ dateTime(item.updatedAt) }}</td>
               <td v-if="auth.isAdmin">
                 <button v-if="!item.systemBuiltin" class="btn ghost" type="button" @click="editUnit(item)">
                   <Pencil :size="16" />
@@ -185,7 +185,7 @@ import { Pencil, RotateCcw, Save } from 'lucide-vue-next'
 import { tradeApi } from '../api/trade'
 import { useAuthStore } from '../stores/auth'
 import { useReferenceStore } from '../stores/reference'
-import { extractError, number } from '../utils/format'
+import { dateTime, extractError, number } from '../utils/format'
 
 const auth = useAuthStore()
 const reference = useReferenceStore()

@@ -1,14 +1,13 @@
 package com.rice.trade.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record PhoneTransactionResponse(
         String businessType,
         String businessTypeLabel,
         Long businessId,
-        LocalDate transactionDate,
+        LocalDateTime transactionDate,
         String productType,
         String productTypeLabel,
         String productName,
@@ -24,7 +23,9 @@ public record PhoneTransactionResponse(
         BigDecimal weightJin,
         BigDecimal pricePerJin,
         BigDecimal totalAmount,
-        Boolean settled,
+        BigDecimal settledAmount,
+        BigDecimal unsettledAmount,
+        String settlementChannels,
         String remark,
         LocalDateTime createdAt
 ) {

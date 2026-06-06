@@ -31,17 +31,18 @@
               <th>重量</th>
               <th>单价</th>
               <th>金额</th>
-              <th>结算</th>
+              <th>结账金额</th>
+              <th>结账渠道</th>
               <th>住址</th>
               <th>备注</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="records.length === 0">
-              <td class="empty-row" colspan="13">{{ emptyText }}</td>
+              <td class="empty-row" colspan="14">{{ emptyText }}</td>
             </tr>
             <tr v-for="item in records" :key="`${item.businessType}-${item.businessId}`">
-              <td>{{ item.transactionDate }}</td>
+              <td>{{ dateTime(item.transactionDate) }}</td>
               <td>
                 <span :class="['tag', item.businessType === 'SALE' ? 'amber' : '']">
                   {{ item.businessTypeLabel }}
@@ -56,11 +57,10 @@
               <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
               <td>¥{{ money(item.totalAmount) }}</td>
               <td>
-                <span v-if="item.businessType === 'SALE'" :class="['tag', item.settled ? '' : 'red']">
-                  {{ item.settled ? '已结账' : '未结账' }}
-                </span>
+                <span v-if="item.businessType === 'SALE'">¥{{ money(item.settledAmount) }}</span>
                 <span v-else>-</span>
               </td>
+              <td>{{ item.businessType === 'SALE' ? item.settlementChannels || '-' : '-' }}</td>
               <td>{{ item.contactAddress || '-' }}</td>
               <td>{{ item.remark || '-' }}</td>
             </tr>
@@ -75,7 +75,7 @@
 import { computed, ref } from 'vue'
 import { Search } from 'lucide-vue-next'
 import { tradeApi } from '../api/trade'
-import { extractError, money, number } from '../utils/format'
+import { dateTime, extractError, money, number } from '../utils/format'
 
 const phone = ref('')
 const records = ref([])

@@ -18,6 +18,7 @@ export const tradeApi = {
   createPurchase: (payload) => http.post('/purchases', payload).then((res) => res.data),
   sales: (params) => http.get('/sales', { params }).then((res) => res.data),
   createSale: (payload) => http.post('/sales', payload).then((res) => res.data),
+  createSaleSettlement: (id, payload) => http.post(`/sales/${id}/settlements`, payload).then((res) => res.data),
   updateSettlement: (id, settled) => http.patch(`/sales/${id}/settlement`, { settled }).then((res) => res.data),
   phoneTransactions: (params) => http.get('/phone-transactions', { params }).then((res) => res.data),
   inventory: (params) => http.get('/inventory', { params }).then((res) => res.data),
