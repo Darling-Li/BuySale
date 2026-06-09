@@ -570,18 +570,6 @@ tbody tr:hover {
   height: 340px;
 }
 
-.settlement {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.settlement input {
-  width: 17px;
-  height: 17px;
-  accent-color: var(--brand);
-}
-
 .console-guard-overlay {
   position: fixed;
   inset: 0;

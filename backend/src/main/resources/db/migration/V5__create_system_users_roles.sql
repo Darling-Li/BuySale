@@ -23,9 +23,7 @@ CREATE TABLE system_users (
 CREATE TABLE system_user_roles (
     user_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_system_user_roles_user FOREIGN KEY (user_id) REFERENCES system_users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_system_user_roles_role FOREIGN KEY (role_id) REFERENCES system_roles (id)
+    PRIMARY KEY (user_id, role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO system_roles (code, name, description, enabled, created_at, updated_at)

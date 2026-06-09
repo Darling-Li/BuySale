@@ -50,8 +50,6 @@ public record CreateSaleRequest(
         @NotNull(message = "销售日期不能为空")
         LocalDate soldAt,
 
-        boolean settled,
-
         @Size(max = 500, message = "备注不能超过500个字符")
         String remark
 ) {

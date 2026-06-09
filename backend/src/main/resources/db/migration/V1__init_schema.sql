@@ -23,8 +23,7 @@ CREATE TABLE purchase_orders (
     purchased_at DATE NOT NULL,
     remark VARCHAR(500),
     created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    CONSTRAINT fk_purchase_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
+    updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE sale_orders (
@@ -38,12 +37,10 @@ CREATE TABLE sale_orders (
     weight_jin DECIMAL(18, 2) NOT NULL,
     price_per_jin DECIMAL(18, 4) NOT NULL,
     total_amount DECIMAL(18, 2) NOT NULL,
-    settled BOOLEAN NOT NULL DEFAULT FALSE,
     sold_at DATE NOT NULL,
     remark VARCHAR(500),
     created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    CONSTRAINT fk_sale_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
+    updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE inventory_items (
@@ -55,7 +52,6 @@ CREATE TABLE inventory_items (
     average_cost_per_jin DECIMAL(18, 4) NOT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
-    CONSTRAINT fk_inventory_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses (id),
     CONSTRAINT uk_inventory_scope UNIQUE (warehouse_id, product_type, product_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -70,8 +66,7 @@ CREATE TABLE inventory_transactions (
     weight_jin DECIMAL(18, 2) NOT NULL,
     price_per_jin DECIMAL(18, 4) NOT NULL,
     occurred_at DATETIME NOT NULL,
-    remark VARCHAR(500),
-    CONSTRAINT fk_inventory_transaction_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
+    remark VARCHAR(500)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX idx_purchase_date ON purchase_orders (purchased_at);

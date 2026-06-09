@@ -20,7 +20,6 @@ public class SaleOrder {
     private BigDecimal weightJin;
     private BigDecimal pricePerJin;
     private BigDecimal totalAmount;
-    private boolean settled;
     private LocalDate soldAt;
     private String remark;
     private LocalDateTime createdAt;
@@ -136,14 +135,6 @@ public class SaleOrder {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    public boolean isSettled() {
-        return settled;
-    }
-
-    public void setSettled(boolean settled) {
-        this.settled = settled;
     }
 
     public LocalDate getSoldAt() {

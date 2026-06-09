@@ -143,7 +143,6 @@ public class PhoneTransactionService {
             case "BANK_CARD" -> "银行卡";
             case "TRANSFER" -> "微信/支付宝转账";
             case "CASH" -> "现金";
-            case "HISTORY" -> "历史结账";
             default -> "其他";
         };
     }

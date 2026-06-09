@@ -3,13 +3,11 @@ package com.rice.trade.controller;
 import com.rice.trade.dto.CreateSaleRequest;
 import com.rice.trade.dto.CreateSaleSettlementRequest;
 import com.rice.trade.dto.SaleResponse;
-import com.rice.trade.dto.UpdateSettlementRequest;
 import com.rice.trade.service.SaleService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,10 +30,9 @@ public class SaleController {
     public List<SaleResponse> search(
             @RequestParam(required = false) String productType,
             @RequestParam(required = false) Long warehouseId,
-            @RequestParam(required = false) Boolean settled,
             @RequestParam(required = false) String keyword
     ) {
-        return saleService.search(productType, warehouseId, settled, keyword);
+        return saleService.search(productType, warehouseId, keyword);
     }
 
     @PostMapping
@@ -53,11 +50,4 @@ public class SaleController {
         return saleService.createSettlement(id, request);
     }
 
-    @PatchMapping("/{id}/settlement")
-    public SaleResponse updateSettlement(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateSettlementRequest request
-    ) {
-        return saleService.updateSettlement(id, request);
-    }
 }

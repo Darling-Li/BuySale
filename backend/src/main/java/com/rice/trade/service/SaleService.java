@@ -4,7 +4,6 @@ import com.rice.trade.dto.CreateSaleRequest;
 import com.rice.trade.dto.CreateSaleSettlementRequest;
 import com.rice.trade.dto.SaleResponse;
 import com.rice.trade.dto.SaleSettlementResponse;
-import com.rice.trade.dto.UpdateSettlementRequest;
 import com.rice.trade.entity.InventoryItem;
 import com.rice.trade.entity.InventoryTransaction;
 import com.rice.trade.entity.ProductUnit;
@@ -57,10 +56,9 @@ public class SaleService {
     }
 
     @Transactional(readOnly = true)
-    public List<SaleResponse> search(String productType, Long warehouseId, Boolean settled, String keyword) {
-        return saleOrderMapper.search(productType, warehouseId, null, cleanKeyword(keyword)).stream()
+    public List<SaleResponse> search(String productType, Long warehouseId, String keyword) {
+        return saleOrderMapper.search(productType, warehouseId, cleanKeyword(keyword)).stream()
                 .map(this::toResponse)
-                .filter(response -> settled == null || isFullySettled(response) == settled)
                 .toList();
     }
 
@@ -99,7 +97,6 @@ public class SaleService {
         order.setPricePerJin(conversion.pricePerJin());
         order.setTotalAmount(conversion.totalAmount());
         order.setSoldAt(request.soldAt());
-        order.setSettled(false);
         order.setRemark(trim(request.remark()));
         saleOrderMapper.insert(order);
         SaleOrder saved = saleOrderMapper.findById(order.getId());
@@ -128,18 +125,7 @@ public class SaleService {
         settlement.setSettledAt(request.settledAt() == null ? LocalDateTime.now() : request.settledAt());
         settlement.setRemark(trim(request.remark()));
         saleSettlementMapper.insert(settlement);
-        saleOrderMapper.updateSettlement(saleOrderId, currentSettled.add(amount).compareTo(order.getTotalAmount()) >= 0);
         return toResponse(saleOrderMapper.findById(saleOrderId));
-    }
-
-    @Transactional
-    public SaleResponse updateSettlement(Long id, UpdateSettlementRequest request) {
-        SaleOrder order = saleOrderMapper.findById(id);
-        if (order == null) {
-            throw new ResourceNotFoundException("销售记录不存在：" + id);
-        }
-        saleOrderMapper.updateSettlement(id, request.settled());
-        return toResponse(saleOrderMapper.findById(id));
     }
 
     private InventoryTransaction transaction(SaleOrder order, Warehouse warehouse) {
@@ -206,10 +192,6 @@ public class SaleService {
         );
     }
 
-    private boolean isFullySettled(SaleResponse response) {
-        return response.settledAmount().compareTo(response.totalAmount()) >= 0;
-    }
-
     private BigDecimal settledAmount(Long saleOrderId) {
         BigDecimal amount = saleSettlementMapper.sumAmountBySaleOrderId(saleOrderId);
         return amount == null ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP) : amount.setScale(2, RoundingMode.HALF_UP);
@@ -236,7 +218,6 @@ public class SaleService {
             case "BANK_CARD" -> "银行卡";
             case "TRANSFER" -> "微信/支付宝转账";
             case "CASH" -> "现金";
-            case "HISTORY" -> "历史结账";
             default -> "其他";
         };
     }

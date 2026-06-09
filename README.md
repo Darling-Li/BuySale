@@ -184,7 +184,7 @@ APP_ADMIN_DEVICE_TOKEN_HASHES=上一步输出的64位哈希
 - `POST /api/purchases` 新增采购并自动入库
 - `GET /api/sales` 销售记录
 - `POST /api/sales` 新增销售并自动出库
-- `PATCH /api/sales/{id}/settlement` 更新结算状态
+- `POST /api/sales/{id}/settlements` 新增销售结账记录
 - `GET /api/inventory` 库存汇总
 - `GET /api/dashboard/monthly-trend?year=2026` 月度同比/环比
 - `GET /api/audit-logs` 管理员操作日志

@@ -12,7 +12,6 @@ import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface SaleOrderMapper {
@@ -26,9 +25,6 @@ public interface SaleOrderMapper {
             </if>
             <if test="warehouseId != null">
               and warehouse_id = #{warehouseId}
-            </if>
-            <if test="settled != null">
-              and settled = #{settled}
             </if>
             <if test="keyword != null">
               and (
@@ -44,7 +40,6 @@ public interface SaleOrderMapper {
     List<SaleOrder> search(
             @Param("productType") String productType,
             @Param("warehouseId") Long warehouseId,
-            @Param("settled") Boolean settled,
             @Param("keyword") String keyword
     );
 
@@ -85,24 +80,17 @@ public interface SaleOrderMapper {
                 product_type, product_name, warehouse_id,
                 buyer_name, buyer_phone, buyer_address,
                 quantity, unit_name, unit_to_jin, unit_price,
-                weight_jin, price_per_jin, total_amount, settled, sold_at,
+                weight_jin, price_per_jin, total_amount, sold_at,
                 remark, created_at, updated_at
             )
             values (
                 #{productType}, #{productName}, #{warehouse.id},
                 #{buyerName}, #{buyerPhone}, #{buyerAddress},
                 #{quantity}, #{unitName}, #{unitToJin}, #{unitPrice},
-                #{weightJin}, #{pricePerJin}, #{totalAmount}, #{settled}, #{soldAt},
+                #{weightJin}, #{pricePerJin}, #{totalAmount}, #{soldAt},
                 #{remark}, now(), now()
             )
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(SaleOrder order);
-
-    @Update("""
-            update sale_orders
-            set settled = #{settled}, updated_at = now()
-            where id = #{id}
-            """)
-    int updateSettlement(@Param("id") Long id, @Param("settled") Boolean settled);
 }
