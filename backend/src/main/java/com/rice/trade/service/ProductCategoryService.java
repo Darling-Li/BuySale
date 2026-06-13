@@ -38,6 +38,7 @@ public class ProductCategoryService {
     public ProductCategoryResponse create(ProductCategoryRequest request) {
         ProductCategory category = new ProductCategory();
         apply(category, request);
+        category.setSystemBuiltin(false);
         assertCodeAvailable(category.getCode(), null);
         productCategoryMapper.insert(category);
         return toResponse(productCategoryMapper.findById(category.getId()));
@@ -56,6 +57,24 @@ public class ProductCategoryService {
         assertCodeAvailable(category.getCode(), id);
         productCategoryMapper.update(category);
         return toResponse(productCategoryMapper.findById(id));
+    }
+
+    @Transactional
+    public void deleteBatch(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new BusinessException("请选择要删除的商品种类");
+        }
+        List<Long> distinctIds = ids.stream().distinct().toList();
+        for (Long id : distinctIds) {
+            ProductCategory category = productCategoryMapper.findById(id);
+            if (category == null) {
+                throw new ResourceNotFoundException("商品种类不存在：" + id);
+            }
+            if (category.isSystemBuiltin()) {
+                throw new BusinessException("系统默认种类不能删除：" + category.getName());
+            }
+        }
+        productCategoryMapper.deleteByIds(distinctIds);
     }
 
     @Transactional(readOnly = true)
@@ -100,6 +119,7 @@ public class ProductCategoryService {
                 category.getId(),
                 category.getCode(),
                 category.getName(),
+                category.isSystemBuiltin(),
                 category.getSortOrder(),
                 category.isEnabled(),
                 category.getRemark(),

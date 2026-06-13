@@ -78,14 +78,18 @@ public interface PurchaseOrderMapper {
     @Insert("""
             insert into purchase_orders (
                 product_type, product_name, warehouse_id,
-                counterparty_name, counterparty_phone, counterparty_address,
+                counterparty_name, counterparty_phone,
+                counterparty_province, counterparty_city, counterparty_county,
+                counterparty_address_detail,
                 quantity, unit_name, unit_to_jin, unit_price,
                 weight_jin, price_per_jin, total_amount, purchased_at,
                 remark, created_at, updated_at
             )
             values (
                 #{productType}, #{productName}, #{warehouse.id},
-                #{counterpartyName}, #{counterpartyPhone}, #{counterpartyAddress},
+                #{counterpartyName}, #{counterpartyPhone},
+                #{counterpartyProvince}, #{counterpartyCity}, #{counterpartyCounty},
+                #{counterpartyAddressDetail},
                 #{quantity}, #{unitName}, #{unitToJin}, #{unitPrice},
                 #{weightJin}, #{pricePerJin}, #{totalAmount}, #{purchasedAt},
                 #{remark}, now(), now()

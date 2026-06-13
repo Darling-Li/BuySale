@@ -72,7 +72,12 @@ public class PhoneTransactionService {
                 order.getWarehouse().getName(),
                 order.getCounterpartyName(),
                 order.getCounterpartyPhone(),
-                order.getCounterpartyAddress(),
+                addressOf(
+                        order.getCounterpartyProvince(),
+                        order.getCounterpartyCity(),
+                        order.getCounterpartyCounty(),
+                        order.getCounterpartyAddressDetail()
+                ),
                 order.getQuantity(),
                 order.getUnitName(),
                 order.getUnitToJin(),
@@ -104,7 +109,12 @@ public class PhoneTransactionService {
                 order.getWarehouse().getName(),
                 order.getBuyerName(),
                 order.getBuyerPhone(),
-                order.getBuyerAddress(),
+                addressOf(
+                        order.getBuyerProvince(),
+                        order.getBuyerCity(),
+                        order.getBuyerCounty(),
+                        order.getBuyerAddressDetail()
+                ),
                 order.getQuantity(),
                 order.getUnitName(),
                 order.getUnitToJin(),
@@ -136,6 +146,13 @@ public class PhoneTransactionService {
         LinkedHashSet<String> labels = new LinkedHashSet<>();
         saleSettlementMapper.findBySaleOrderId(saleOrderId).forEach(settlement -> labels.add(channelLabel(settlement.getChannel())));
         return labels.isEmpty() ? "-" : String.join("、", labels);
+    }
+
+    private String addressOf(String province, String city, String county, String detail) {
+        String address = Stream.of(province, city, county, detail)
+                .filter(part -> part != null && !part.isBlank())
+                .reduce("", String::concat);
+        return address.isBlank() ? null : address;
     }
 
     private String channelLabel(String channel) {

@@ -88,7 +88,10 @@ public class SaleService {
         order.setWarehouse(warehouse);
         order.setBuyerName(normalizeName(request.buyerName()));
         order.setBuyerPhone(trim(request.buyerPhone()));
-        order.setBuyerAddress(trim(request.buyerAddress()));
+        order.setBuyerProvince(trim(request.buyerProvince()));
+        order.setBuyerCity(trim(request.buyerCity()));
+        order.setBuyerCounty(trim(request.buyerCounty()));
+        order.setBuyerAddressDetail(trim(request.buyerAddressDetail()));
         order.setQuantity(conversion.quantity());
         order.setUnitName(conversion.unitName());
         order.setUnitToJin(conversion.unitToJin());
@@ -161,7 +164,16 @@ public class SaleService {
                 order.getWarehouse().getName(),
                 order.getBuyerName(),
                 order.getBuyerPhone(),
-                order.getBuyerAddress(),
+                order.getBuyerProvince(),
+                order.getBuyerCity(),
+                order.getBuyerCounty(),
+                order.getBuyerAddressDetail(),
+                addressDisplay(
+                        order.getBuyerProvince(),
+                        order.getBuyerCity(),
+                        order.getBuyerCounty(),
+                        order.getBuyerAddressDetail()
+                ),
                 order.getQuantity(),
                 order.getUnitName(),
                 order.getUnitToJin(),
@@ -263,4 +275,14 @@ public class SaleService {
     private String trim(String value) {
         return value == null ? null : value.trim();
     }
+
+    private String addressDisplay(String province, String city, String county, String detail) {
+        String value = blankToEmpty(province) + blankToEmpty(city) + blankToEmpty(county) + blankToEmpty(detail);
+        return value.isBlank() ? null : value;
+    }
+
+    private String blankToEmpty(String value) {
+        return value == null ? "" : value.trim();
+    }
+
 }

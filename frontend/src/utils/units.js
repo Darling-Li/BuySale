@@ -1,7 +1,7 @@
 export const fallbackUnitOptions = [
   { label: '斤', unitToJin: 1 },
-  { label: '公斤', unitToJin: 2 },
-  { label: '吨', unitToJin: 2000 }
+  { label: '吨', unitToJin: 2000 },
+  { label: 'kg', unitToJin: 2 }
 ]
 
 export function convertedWeightJin(quantity, unitToJin) {

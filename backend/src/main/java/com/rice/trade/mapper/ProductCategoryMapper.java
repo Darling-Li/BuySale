@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.Delete;
 
 @Mapper
 public interface ProductCategoryMapper {
@@ -33,10 +34,10 @@ public interface ProductCategoryMapper {
 
     @Insert("""
             insert into product_categories (
-                code, name, sort_order, enabled, remark, created_at, updated_at
+                code, name, system_builtin, sort_order, enabled, remark, created_at, updated_at
             )
             values (
-                #{code}, #{name}, #{sortOrder}, #{enabled}, #{remark}, now(), now()
+                #{code}, #{name}, #{systemBuiltin}, #{sortOrder}, #{enabled}, #{remark}, now(), now()
             )
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
@@ -53,4 +54,15 @@ public interface ProductCategoryMapper {
             where id = #{id}
             """)
     int update(ProductCategory category);
+
+    @Delete("""
+            <script>
+            delete from product_categories
+            where id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+              #{id}
+            </foreach>
+            </script>
+            """)
+    int deleteByIds(@Param("ids") List<Long> ids);
 }

@@ -5,6 +5,7 @@ import com.rice.trade.config.AccessControlProperties;
 import com.rice.trade.config.AdminDeviceProperties;
 import com.rice.trade.config.ApiCryptoProperties;
 import com.rice.trade.config.DdosProtectionProperties;
+import com.rice.trade.config.LocationProperties;
 import com.rice.trade.config.TokenSessionProperties;
 import com.rice.trade.dto.ApiResponse;
 import com.rice.trade.mapper.AuditLogMapper;
@@ -31,6 +32,7 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
         AdminDeviceProperties.class,
         ApiCryptoProperties.class,
         DdosProtectionProperties.class,
+        LocationProperties.class,
         TokenSessionProperties.class
 })
 public class SecurityConfig {

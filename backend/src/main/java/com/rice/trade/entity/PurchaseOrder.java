@@ -12,7 +12,10 @@ public class PurchaseOrder {
     private Warehouse warehouse;
     private String counterpartyName;
     private String counterpartyPhone;
-    private String counterpartyAddress;
+    private String counterpartyProvince;
+    private String counterpartyCity;
+    private String counterpartyCounty;
+    private String counterpartyAddressDetail;
     private BigDecimal quantity;
     private String unitName;
     private BigDecimal unitToJin;
@@ -73,12 +76,36 @@ public class PurchaseOrder {
         this.counterpartyPhone = counterpartyPhone;
     }
 
-    public String getCounterpartyAddress() {
-        return counterpartyAddress;
+    public String getCounterpartyProvince() {
+        return counterpartyProvince;
     }
 
-    public void setCounterpartyAddress(String counterpartyAddress) {
-        this.counterpartyAddress = counterpartyAddress;
+    public void setCounterpartyProvince(String counterpartyProvince) {
+        this.counterpartyProvince = counterpartyProvince;
+    }
+
+    public String getCounterpartyCity() {
+        return counterpartyCity;
+    }
+
+    public void setCounterpartyCity(String counterpartyCity) {
+        this.counterpartyCity = counterpartyCity;
+    }
+
+    public String getCounterpartyCounty() {
+        return counterpartyCounty;
+    }
+
+    public void setCounterpartyCounty(String counterpartyCounty) {
+        this.counterpartyCounty = counterpartyCounty;
+    }
+
+    public String getCounterpartyAddressDetail() {
+        return counterpartyAddressDetail;
+    }
+
+    public void setCounterpartyAddressDetail(String counterpartyAddressDetail) {
+        this.counterpartyAddressDetail = counterpartyAddressDetail;
     }
 
     public BigDecimal getQuantity() {

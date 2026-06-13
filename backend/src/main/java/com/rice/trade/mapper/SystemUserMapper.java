@@ -60,6 +60,17 @@ public interface SystemUserMapper {
     @Delete("delete from system_user_roles where user_id = #{userId}")
     int deleteRoles(Long userId);
 
+    @Delete("""
+            <script>
+            delete from system_user_roles
+            where user_id in
+            <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
+              #{userId}
+            </foreach>
+            </script>
+            """)
+    int deleteRolesByUserIds(@Param("userIds") List<Long> userIds);
+
     @Insert("""
             insert into system_user_roles (user_id, role_id)
             select #{userId}, id
@@ -67,4 +78,15 @@ public interface SystemUserMapper {
             where code = #{roleCode}
             """)
     int insertRole(@Param("userId") Long userId, @Param("roleCode") String roleCode);
+
+    @Delete("""
+            <script>
+            delete from system_users
+            where id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+              #{id}
+            </foreach>
+            </script>
+            """)
+    int deleteByIds(@Param("ids") List<Long> ids);
 }

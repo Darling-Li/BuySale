@@ -28,9 +28,12 @@
         <UiField label="电话">
           <input v-model.trim="form.buyerPhone" />
         </UiField>
-        <UiField label="家庭住址" wide>
-          <input v-model.trim="form.buyerAddress" />
-        </UiField>
+        <LocationAddressFields
+          v-model:province="form.buyerProvince"
+          v-model:city="form.buyerCity"
+          v-model:county="form.buyerCounty"
+          v-model:address-detail="form.buyerAddressDetail"
+        />
         <UiField label="数量">
           <input v-model.number="form.quantity" type="number" min="0.01" step="0.01" required />
         </UiField>
@@ -126,7 +129,7 @@
       </div>
     </UiPanel>
 
-    <DataTable title="销售记录" :tag="`${records.length} 条`" min-width="1320px">
+    <DataTable title="销售记录" :tag="`${records.length} 条`" min-width="1660px">
       <thead>
         <tr>
           <th>日期</th>
@@ -142,12 +145,16 @@
           <th>未结账</th>
           <th>结账渠道</th>
           <th v-if="auth.isAdmin">操作</th>
-          <th>住址</th>
+          <th>省</th>
+          <th>市</th>
+          <th>县</th>
+          <th>详细地址</th>
+          <th>地址展示</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="records.length === 0">
-          <td class="empty-row" :colspan="auth.isAdmin ? 14 : 13">暂无销售记录</td>
+          <td class="empty-row" :colspan="auth.isAdmin ? 18 : 17">暂无销售记录</td>
         </tr>
         <tr v-for="item in records" :key="item.id">
           <td>{{ item.soldAt }}</td>
@@ -168,9 +175,11 @@
               登记
             </UiButton>
           </td>
-          <td>
-            {{ item.buyerAddress || '-' }}
-          </td>
+          <td>{{ item.buyerProvince || '-' }}</td>
+          <td>{{ item.buyerCity || '-' }}</td>
+          <td>{{ item.buyerCounty || '-' }}</td>
+          <td>{{ item.buyerAddressDetail || '-' }}</td>
+          <td>{{ item.buyerAddressDisplay || saleAddress(item) }}</td>
         </tr>
       </tbody>
     </DataTable>
@@ -180,6 +189,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RotateCcw, Save, Search } from 'lucide-vue-next'
+import LocationAddressFields from '../components/LocationAddressFields.vue'
 import { tradeApi } from '../api/trade'
 import { useAuthStore } from '../stores/auth'
 import { useReferenceStore } from '../stores/reference'
@@ -237,7 +247,10 @@ function defaultForm() {
     warehouseId: '',
     buyerName: '',
     buyerPhone: '',
-    buyerAddress: '',
+    buyerProvince: '',
+    buyerCity: '',
+    buyerCounty: '',
+    buyerAddressDetail: '',
     quantity: '',
     unitName: unit.label,
     unitToJin: unit.unitToJin,
@@ -389,6 +402,12 @@ function nowDateTimeLocal() {
   const date = new Date()
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
   return date.toISOString().slice(0, 16)
+}
+
+function saleAddress(item) {
+  return [item.buyerProvince, item.buyerCity, item.buyerCounty, item.buyerAddressDetail]
+    .filter(Boolean)
+    .join('') || '-'
 }
 
 onMounted(async () => {

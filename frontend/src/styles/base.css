@@ -323,6 +323,40 @@ button {
   min-width: 168px;
 }
 
+.submodule-toolbar {
+  align-items: center;
+}
+
+.segmented {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid #d4dde8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-right: 1px solid #e5ebf2;
+  background: #ffffff;
+  color: #435067;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.segmented button:last-child {
+  border-right: 0;
+}
+
+.segmented button.active {
+  background: #102a43;
+  color: #ffffff;
+}
+
 .field.wide {
   grid-column: span 2;
 }
@@ -352,6 +386,16 @@ button {
   transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
 
+.field input[type="checkbox"],
+.field input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
 .field textarea {
   min-height: 76px;
   resize: vertical;
@@ -373,6 +417,87 @@ button {
 .field textarea:disabled {
   background: #f2f5f8;
   color: #667085;
+}
+
+.address-fields {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.address-detail-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.address-message {
+  grid-column: 1 / -1;
+}
+
+.scan-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.scan-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hidden-file {
+  display: none;
+}
+
+.scan-message {
+  min-width: 160px;
+}
+
+.password-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  gap: 8px;
+}
+
+.password-input-row .btn {
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+}
+
+.checkbox-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 120px));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.check-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d4dde8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #253247;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.check-item input {
+  flex: 0 0 auto;
+}
+
+.check-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actions {
@@ -671,7 +796,8 @@ tbody tr:hover {
   }
 
   .form-grid,
-  .metric-grid {
+  .metric-grid,
+  .address-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -701,18 +827,51 @@ tbody tr:hover {
   }
 
   .toolbar .field,
-  .toolbar .btn {
+  .toolbar .btn,
+  .segmented {
     width: 100%;
   }
 
+  .segmented {
+    display: grid;
+  }
+
+  .segmented button {
+    justify-content: center;
+    border-right: 0;
+    border-bottom: 1px solid #e5ebf2;
+  }
+
+  .segmented button:last-child {
+    border-bottom: 0;
+  }
+
   .form-grid,
-  .metric-grid {
+  .metric-grid,
+  .address-fields {
     grid-template-columns: 1fr;
   }
 
   .field.wide,
   .field.full {
     grid-column: 1;
+  }
+
+  .address-detail-row {
+    grid-template-columns: 1fr;
+  }
+
+  .address-detail-row .btn {
+    width: 100%;
+  }
+
+  .scan-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .scan-row,
+  .scan-row .btn {
+    width: 100%;
   }
 
   .panel-title {

@@ -65,3 +65,7 @@ app:
     enabled: ${APP_CRYPTO_ENABLED:false}
     shared-key: ${APP_CRYPTO_SHARED_KEY:lmbcddzxj1314}
     require-encrypted-requests: ${APP_CRYPTO_REQUIRE_ENCRYPTED_REQUESTS:true}
+  location:
+    enabled: ${APP_LOCATION_ENABLED:false}
+    amap-key: ${APP_LOCATION_AMAP_KEY:}
+    amap-url: ${APP_LOCATION_AMAP_URL:https://restapi.amap.com/v3/geocode/regeo}

@@ -26,8 +26,17 @@ public record CreatePurchaseRequest(
         @Size(max = 30, message = "电话不能超过30个字符")
         String counterpartyPhone,
 
-        @Size(max = 255, message = "家庭住址不能超过255个字符")
-        String counterpartyAddress,
+        @Size(max = 40, message = "省份不能超过40个字符")
+        String counterpartyProvince,
+
+        @Size(max = 60, message = "城市不能超过60个字符")
+        String counterpartyCity,
+
+        @Size(max = 80, message = "区县不能超过80个字符")
+        String counterpartyCounty,
+
+        @Size(max = 255, message = "详细地址不能超过255个字符")
+        String counterpartyAddressDetail,
 
         @DecimalMin(value = "0.01", message = "数量必须大于0")
         BigDecimal quantity,

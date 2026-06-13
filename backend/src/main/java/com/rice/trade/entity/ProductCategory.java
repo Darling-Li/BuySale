@@ -7,6 +7,7 @@ public class ProductCategory {
     private Long id;
     private String code;
     private String name;
+    private boolean systemBuiltin;
     private Integer sortOrder;
     private boolean enabled;
     private String remark;
@@ -35,6 +36,14 @@ public class ProductCategory {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isSystemBuiltin() {
+        return systemBuiltin;
+    }
+
+    public void setSystemBuiltin(boolean systemBuiltin) {
+        this.systemBuiltin = systemBuiltin;
     }
 
     public Integer getSortOrder() {

@@ -14,6 +14,12 @@
         <UiField label="商品名称">
           <input v-model.trim="form.productName" required placeholder="如：稻谷、杂交稻种、复合肥" />
         </UiField>
+        <UiField label="二维码内容" wide>
+          <div class="scan-input-row">
+            <input v-model.trim="form.qrContent" placeholder="识别后自动填入，可手动调整" />
+            <QrScanButton @detected="handleQrDetected" />
+          </div>
+        </UiField>
         <UiField label="入库仓库">
           <select v-model="form.warehouseId" required>
             <option value="" disabled>请选择仓库</option>
@@ -31,9 +37,12 @@
         <UiField label="电话">
           <input v-model.trim="form.counterpartyPhone" />
         </UiField>
-        <UiField label="家庭住址" wide>
-          <input v-model.trim="form.counterpartyAddress" />
-        </UiField>
+        <LocationAddressFields
+          v-model:province="form.counterpartyProvince"
+          v-model:city="form.counterpartyCity"
+          v-model:county="form.counterpartyCounty"
+          v-model:address-detail="form.counterpartyAddressDetail"
+        />
         <UiField label="数量">
           <input v-model.number="form.quantity" type="number" min="0.01" step="0.01" required />
         </UiField>
@@ -103,7 +112,7 @@
       </UiButton>
     </UiToolbar>
 
-    <DataTable title="采购记录" :tag="`${records.length} 条`" min-width="1080px">
+    <DataTable title="采购记录" :tag="`${records.length} 条`" min-width="1420px">
       <thead>
         <tr>
           <th>日期</th>
@@ -115,12 +124,16 @@
           <th>重量</th>
           <th>单价</th>
           <th>金额</th>
-          <th>住址</th>
+          <th>省</th>
+          <th>市</th>
+          <th>县</th>
+          <th>详细地址</th>
+          <th>地址展示</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="records.length === 0">
-          <td class="empty-row" colspan="10">暂无采购记录</td>
+          <td class="empty-row" colspan="14">暂无采购记录</td>
         </tr>
         <tr v-for="item in records" :key="item.id">
           <td>{{ item.purchasedAt }}</td>
@@ -132,7 +145,11 @@
           <td>{{ number(item.quantity || item.weightJin) }} {{ item.unitName || '斤' }}</td>
           <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
           <td>¥{{ money(item.totalAmount) }}</td>
-          <td>{{ item.counterpartyAddress || '-' }}</td>
+          <td>{{ item.counterpartyProvince || '-' }}</td>
+          <td>{{ item.counterpartyCity || '-' }}</td>
+          <td>{{ item.counterpartyCounty || '-' }}</td>
+          <td>{{ item.counterpartyAddressDetail || '-' }}</td>
+          <td>{{ item.counterpartyAddressDisplay || purchaseAddress(item) }}</td>
         </tr>
       </tbody>
     </DataTable>
@@ -142,6 +159,8 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { RotateCcw, Save, Search } from 'lucide-vue-next'
+import LocationAddressFields from '../components/LocationAddressFields.vue'
+import QrScanButton from '../components/QrScanButton.vue'
 import { tradeApi } from '../api/trade'
 import { useAuthStore } from '../stores/auth'
 import { useReferenceStore } from '../stores/reference'
@@ -187,10 +206,14 @@ function defaultForm() {
   return {
     productType,
     productName,
+    qrContent: '',
     warehouseId: '',
     counterpartyName: '',
     counterpartyPhone: '',
-    counterpartyAddress: '',
+    counterpartyProvince: '',
+    counterpartyCity: '',
+    counterpartyCounty: '',
+    counterpartyAddressDetail: '',
     quantity: '',
     unitName: unit.label,
     unitToJin: unit.unitToJin,
@@ -236,7 +259,10 @@ async function submit() {
       warehouseId: Number(form.value.warehouseId),
       counterpartyName: form.value.counterpartyName,
       counterpartyPhone: form.value.counterpartyPhone,
-      counterpartyAddress: form.value.counterpartyAddress,
+      counterpartyProvince: form.value.counterpartyProvince,
+      counterpartyCity: form.value.counterpartyCity,
+      counterpartyCounty: form.value.counterpartyCounty,
+      counterpartyAddressDetail: form.value.counterpartyAddressDetail,
       quantity: form.value.quantity,
       unitName: form.value.unitName,
       unitToJin: form.value.unitToJin,
@@ -254,6 +280,65 @@ async function submit() {
   } finally {
     saving.value = false
   }
+}
+
+function handleQrDetected(value) {
+  form.value.qrContent = value
+  const data = parseQrContent(value)
+  applyQrField(data, ['productType', 'type', 'category', '种类', '商品类型'], (matched) => {
+    const option = reference.productTypes.find((item) => item.value === matched || item.label === matched)
+    if (option) {
+      form.value.productType = option.value
+      form.value.productName = option.label
+    }
+  })
+  applyQrField(data, ['productName', 'name', 'goodsName', '商品名称', '名称'], (matched) => {
+    form.value.productName = matched
+  })
+  applyQrField(data, ['quantity', '数量'], (matched) => {
+    form.value.quantity = Number(matched) || form.value.quantity
+  })
+  applyQrField(data, ['unitName', 'unit', '单位'], (matched) => {
+    const option = unitOptions.value.find((item) => item.label === matched)
+    if (option) {
+      form.value.unitName = option.label
+      form.value.unitToJin = option.unitToJin
+    }
+  })
+  applyQrField(data, ['remark', '备注'], (matched) => {
+    form.value.remark = matched
+  })
+  if (!Object.keys(data).length && !form.value.remark) {
+    form.value.remark = `二维码：${value}`
+  }
+}
+
+function parseQrContent(value) {
+  const text = String(value || '').trim()
+  if (!text) return {}
+  try {
+    const parsed = JSON.parse(text)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    const queryText = text.includes('?') ? text.slice(text.indexOf('?') + 1) : text
+    const separator = queryText.includes('&') ? '&' : queryText.includes(';') ? ';' : null
+    if (!separator || !queryText.includes('=')) return {}
+    return Object.fromEntries(queryText.split(separator).map((part) => {
+      const [key, ...rest] = part.split('=')
+      return [decodeURIComponent(key || '').trim(), decodeURIComponent(rest.join('=') || '').trim()]
+    }).filter(([key]) => key))
+  }
+}
+
+function applyQrField(data, keys, action) {
+  const key = keys.find((item) => data[item] !== undefined && data[item] !== null && String(data[item]).trim() !== '')
+  if (key) action(String(data[key]).trim())
+}
+
+function purchaseAddress(item) {
+  return [item.counterpartyProvince, item.counterpartyCity, item.counterpartyCounty, item.counterpartyAddressDetail]
+    .filter(Boolean)
+    .join('') || '-'
 }
 
 watch(() => reference.warehouses, (warehouses) => {

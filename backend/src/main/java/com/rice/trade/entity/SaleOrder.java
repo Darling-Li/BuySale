@@ -12,7 +12,10 @@ public class SaleOrder {
     private Warehouse warehouse;
     private String buyerName;
     private String buyerPhone;
-    private String buyerAddress;
+    private String buyerProvince;
+    private String buyerCity;
+    private String buyerCounty;
+    private String buyerAddressDetail;
     private BigDecimal quantity;
     private String unitName;
     private BigDecimal unitToJin;
@@ -73,12 +76,36 @@ public class SaleOrder {
         this.buyerPhone = buyerPhone;
     }
 
-    public String getBuyerAddress() {
-        return buyerAddress;
+    public String getBuyerProvince() {
+        return buyerProvince;
     }
 
-    public void setBuyerAddress(String buyerAddress) {
-        this.buyerAddress = buyerAddress;
+    public void setBuyerProvince(String buyerProvince) {
+        this.buyerProvince = buyerProvince;
+    }
+
+    public String getBuyerCity() {
+        return buyerCity;
+    }
+
+    public void setBuyerCity(String buyerCity) {
+        this.buyerCity = buyerCity;
+    }
+
+    public String getBuyerCounty() {
+        return buyerCounty;
+    }
+
+    public void setBuyerCounty(String buyerCounty) {
+        this.buyerCounty = buyerCounty;
+    }
+
+    public String getBuyerAddressDetail() {
+        return buyerAddressDetail;
+    }
+
+    public void setBuyerAddressDetail(String buyerAddressDetail) {
+        this.buyerAddressDetail = buyerAddressDetail;
     }
 
     public BigDecimal getQuantity() {

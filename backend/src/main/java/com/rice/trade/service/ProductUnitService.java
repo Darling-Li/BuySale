@@ -73,6 +73,24 @@ public class ProductUnitService {
         return toResponse(productUnitMapper.findById(id));
     }
 
+    @Transactional
+    public void deleteBatch(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new BusinessException("请选择要删除的单位");
+        }
+        List<Long> distinctIds = ids.stream().distinct().toList();
+        for (Long id : distinctIds) {
+            ProductUnit unit = productUnitMapper.findById(id);
+            if (unit == null) {
+                throw new ResourceNotFoundException("单位不存在：" + id);
+            }
+            if (unit.isSystemBuiltin()) {
+                throw new BusinessException("系统固定单位不能删除：" + unit.getName());
+            }
+        }
+        productUnitMapper.deleteByIds(distinctIds);
+    }
+
     private void apply(ProductUnit unit, ProductUnitRequest request) {
         unit.setName(normalizeName(request.name()));
         unit.setUnitToJin(request.unitToJin().setScale(4, RoundingMode.HALF_UP));

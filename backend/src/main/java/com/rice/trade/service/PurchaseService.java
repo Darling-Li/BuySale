@@ -70,7 +70,10 @@ public class PurchaseService {
         order.setWarehouse(warehouse);
         order.setCounterpartyName(normalizeName(request.counterpartyName()));
         order.setCounterpartyPhone(trim(request.counterpartyPhone()));
-        order.setCounterpartyAddress(trim(request.counterpartyAddress()));
+        order.setCounterpartyProvince(trim(request.counterpartyProvince()));
+        order.setCounterpartyCity(trim(request.counterpartyCity()));
+        order.setCounterpartyCounty(trim(request.counterpartyCounty()));
+        order.setCounterpartyAddressDetail(trim(request.counterpartyAddressDetail()));
         order.setQuantity(conversion.quantity());
         order.setUnitName(conversion.unitName());
         order.setUnitToJin(conversion.unitToJin());
@@ -113,7 +116,16 @@ public class PurchaseService {
                 order.getWarehouse().getName(),
                 order.getCounterpartyName(),
                 order.getCounterpartyPhone(),
-                order.getCounterpartyAddress(),
+                order.getCounterpartyProvince(),
+                order.getCounterpartyCity(),
+                order.getCounterpartyCounty(),
+                order.getCounterpartyAddressDetail(),
+                addressDisplay(
+                        order.getCounterpartyProvince(),
+                        order.getCounterpartyCity(),
+                        order.getCounterpartyCounty(),
+                        order.getCounterpartyAddressDetail()
+                ),
                 order.getQuantity(),
                 order.getUnitName(),
                 order.getUnitToJin(),
@@ -141,4 +153,14 @@ public class PurchaseService {
     private String trim(String value) {
         return value == null ? null : value.trim();
     }
+
+    private String addressDisplay(String province, String city, String county, String detail) {
+        String value = blankToEmpty(province) + blankToEmpty(city) + blankToEmpty(county) + blankToEmpty(detail);
+        return value.isBlank() ? null : value;
+    }
+
+    private String blankToEmpty(String value) {
+        return value == null ? "" : value.trim();
+    }
+
 }

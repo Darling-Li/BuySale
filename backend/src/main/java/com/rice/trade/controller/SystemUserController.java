@@ -1,5 +1,6 @@
 package com.rice.trade.controller;
 
+import com.rice.trade.dto.BatchDeleteRequest;
 import com.rice.trade.dto.SystemUserRequest;
 import com.rice.trade.dto.SystemUserResponse;
 import com.rice.trade.service.SystemUserService;
@@ -39,5 +40,10 @@ public class SystemUserController {
     @PutMapping("/{id}")
     public SystemUserResponse update(@PathVariable Long id, @Valid @RequestBody SystemUserRequest request) {
         return systemUserService.update(id, request);
+    }
+
+    @PostMapping("/batch-delete")
+    public void deleteBatch(@Valid @RequestBody BatchDeleteRequest request) {
+        systemUserService.deleteBatch(request.ids());
     }
 }

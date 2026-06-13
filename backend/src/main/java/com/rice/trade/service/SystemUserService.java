@@ -8,12 +8,15 @@ import com.rice.trade.exception.ResourceNotFoundException;
 import com.rice.trade.mapper.SystemUserMapper;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SystemUserService {
+
+    private static final Set<String> BUILTIN_USERNAMES = Set.of("admin", "user");
 
     private final SystemUserMapper systemUserMapper;
     private final SystemRoleService systemRoleService;
@@ -72,6 +75,22 @@ public class SystemUserService {
         }
         replaceRoles(id, request.roleCodes());
         return toResponse(requireById(id));
+    }
+
+    @Transactional
+    public void deleteBatch(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new BusinessException("请选择要删除的用户");
+        }
+        List<Long> distinctIds = ids.stream().distinct().toList();
+        for (Long id : distinctIds) {
+            SystemUser user = requireById(id);
+            if (BUILTIN_USERNAMES.contains(user.getUsername())) {
+                throw new BusinessException("系统默认用户不能删除：" + user.getUsername());
+            }
+        }
+        systemUserMapper.deleteRolesByUserIds(distinctIds);
+        systemUserMapper.deleteByIds(distinctIds);
     }
 
     @Transactional(readOnly = true)

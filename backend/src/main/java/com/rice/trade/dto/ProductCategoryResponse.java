@@ -6,6 +6,7 @@ public record ProductCategoryResponse(
         Long id,
         String code,
         String name,
+        boolean systemBuiltin,
         Integer sortOrder,
         boolean enabled,
         String remark,

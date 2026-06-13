@@ -1,5 +1,6 @@
 package com.rice.trade.controller;
 
+import com.rice.trade.dto.BatchDeleteRequest;
 import com.rice.trade.dto.ProductCategoryRequest;
 import com.rice.trade.dto.ProductCategoryResponse;
 import com.rice.trade.service.ProductCategoryService;
@@ -39,5 +40,10 @@ public class ProductCategoryController {
     @PutMapping("/{id}")
     public ProductCategoryResponse update(@PathVariable Long id, @Valid @RequestBody ProductCategoryRequest request) {
         return productCategoryService.update(id, request);
+    }
+
+    @PostMapping("/batch-delete")
+    public void deleteBatch(@Valid @RequestBody BatchDeleteRequest request) {
+        productCategoryService.deleteBatch(request.ids());
     }
 }

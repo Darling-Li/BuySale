@@ -7,10 +7,17 @@ export const tradeApi = {
   productCategories: () => http.get('/product-categories').then((res) => res.data),
   createProductCategory: (payload) => http.post('/product-categories', payload).then((res) => res.data),
   updateProductCategory: (id, payload) => http.put(`/product-categories/${id}`, payload).then((res) => res.data),
+  deleteProductCategories: (ids) => http.post('/product-categories/batch-delete', { ids }).then((res) => res.data),
   productUnits: () => http.get('/product-units').then((res) => res.data),
   referenceUnits: () => http.get('/reference/units').then((res) => res.data),
   createProductUnit: (payload) => http.post('/product-units', payload).then((res) => res.data),
   updateProductUnit: (id, payload) => http.put(`/product-units/${id}`, payload).then((res) => res.data),
+  deleteProductUnits: (ids) => http.post('/product-units/batch-delete', { ids }).then((res) => res.data),
+  systemRoles: () => http.get('/system/roles').then((res) => res.data),
+  systemUsers: () => http.get('/system/users').then((res) => res.data),
+  createSystemUser: (payload) => http.post('/system/users', payload).then((res) => res.data),
+  updateSystemUser: (id, payload) => http.put(`/system/users/${id}`, payload).then((res) => res.data),
+  deleteSystemUsers: (ids) => http.post('/system/users/batch-delete', { ids }).then((res) => res.data),
   warehouses: () => http.get('/warehouses').then((res) => res.data),
   createWarehouse: (payload) => http.post('/warehouses', payload).then((res) => res.data),
   updateWarehouse: (id, payload) => http.put(`/warehouses/${id}`, payload).then((res) => res.data),
@@ -21,5 +28,6 @@ export const tradeApi = {
   createSaleSettlement: (id, payload) => http.post(`/sales/${id}/settlements`, payload).then((res) => res.data),
   phoneTransactions: (params) => http.get('/phone-transactions', { params }).then((res) => res.data),
   inventory: (params) => http.get('/inventory', { params }).then((res) => res.data),
-  monthlyTrend: (params) => http.get('/dashboard/monthly-trend', { params }).then((res) => res.data)
+  monthlyTrend: (params) => http.get('/dashboard/monthly-trend', { params }).then((res) => res.data),
+  reverseGeocode: (params) => http.get('/location/reverse-geocode', { params }).then((res) => res.data)
 }

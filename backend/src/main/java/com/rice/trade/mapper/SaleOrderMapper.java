@@ -78,14 +78,18 @@ public interface SaleOrderMapper {
     @Insert("""
             insert into sale_orders (
                 product_type, product_name, warehouse_id,
-                buyer_name, buyer_phone, buyer_address,
+                buyer_name, buyer_phone,
+                buyer_province, buyer_city, buyer_county,
+                buyer_address_detail,
                 quantity, unit_name, unit_to_jin, unit_price,
                 weight_jin, price_per_jin, total_amount, sold_at,
                 remark, created_at, updated_at
             )
             values (
                 #{productType}, #{productName}, #{warehouse.id},
-                #{buyerName}, #{buyerPhone}, #{buyerAddress},
+                #{buyerName}, #{buyerPhone},
+                #{buyerProvince}, #{buyerCity}, #{buyerCounty},
+                #{buyerAddressDetail},
                 #{quantity}, #{unitName}, #{unitToJin}, #{unitPrice},
                 #{weightJin}, #{pricePerJin}, #{totalAmount}, #{soldAt},
                 #{remark}, now(), now()

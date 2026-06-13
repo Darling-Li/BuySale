@@ -2,6 +2,7 @@ package com.rice.trade.mapper;
 
 import com.rice.trade.entity.ProductUnit;
 import java.util.List;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
@@ -55,4 +56,15 @@ public interface ProductUnitMapper {
             where id = #{id}
             """)
     int update(ProductUnit unit);
+
+    @Delete("""
+            <script>
+            delete from product_units
+            where id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+              #{id}
+            </foreach>
+            </script>
+            """)
+    int deleteByIds(@Param("ids") List<Long> ids);
 }
