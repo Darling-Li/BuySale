@@ -2,170 +2,140 @@
   <section class="page-stack">
     <div v-if="!auth.isAdmin" class="readonly-note">普通角色仅可查询采购记录。</div>
 
-    <form v-if="auth.isAdmin" class="form-panel" @submit.prevent="submit">
-      <div class="form-title">
-        <h2>新增采购</h2>
-        <span class="tag">自动入库</span>
-      </div>
-
+    <UiPanel v-if="auth.isAdmin" as="form" class="form-panel" title="新增采购" tag="自动入库" @submit.prevent="submit">
       <div class="form-grid">
-        <label class="field">
-          <span>商品类型</span>
+        <UiField label="商品类型">
           <select v-model="form.productType" required @change="applyDefaultName">
             <option v-for="item in reference.productTypes" :key="item.value" :value="item.value">
               {{ item.label }}
             </option>
           </select>
-        </label>
-        <label class="field">
-          <span>商品名称</span>
+        </UiField>
+        <UiField label="商品名称">
           <input v-model.trim="form.productName" required placeholder="如：稻谷、杂交稻种、复合肥" />
-        </label>
-        <label class="field">
-          <span>入库仓库</span>
+        </UiField>
+        <UiField label="入库仓库">
           <select v-model="form.warehouseId" required>
             <option value="" disabled>请选择仓库</option>
             <option v-for="item in reference.warehouses" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>
           </select>
-        </label>
-        <label class="field">
-          <span>采购日期</span>
+        </UiField>
+        <UiField label="采购日期">
           <input v-model="form.purchasedAt" type="date" required />
-        </label>
-        <label class="field">
-          <span>客户姓名</span>
+        </UiField>
+        <UiField label="客户姓名">
           <input v-model.trim="form.counterpartyName" required />
-        </label>
-        <label class="field">
-          <span>电话</span>
+        </UiField>
+        <UiField label="电话">
           <input v-model.trim="form.counterpartyPhone" />
-        </label>
-        <label class="field wide">
-          <span>家庭住址</span>
+        </UiField>
+        <UiField label="家庭住址" wide>
           <input v-model.trim="form.counterpartyAddress" />
-        </label>
-        <label class="field">
-          <span>数量</span>
+        </UiField>
+        <UiField label="数量">
           <input v-model.number="form.quantity" type="number" min="0.01" step="0.01" required />
-        </label>
-        <label class="field">
-          <span>单位</span>
+        </UiField>
+        <UiField label="单位">
           <select v-model="form.unitName" required @change="applyUnitPreset">
             <option v-for="item in unitOptions" :key="item.label" :value="item.label">
               {{ item.label }}
             </option>
           </select>
-        </label>
-        <label class="field">
-          <span>每单位折合斤</span>
+        </UiField>
+        <UiField label="每单位折合斤">
           <input v-model.number="form.unitToJin" disabled type="number" min="0.0001" step="0.0001" required />
-        </label>
-        <label class="field">
-          <span>单价模式</span>
+        </UiField>
+        <UiField label="单价模式">
           <select v-model="form.priceMode">
             <option value="YUAN_PER_JIN">一斤多少元</option>
             <option value="MAO_PER_JIN">一斤多少毛</option>
           </select>
-        </label>
-        <label class="field">
-          <span>{{ form.priceMode === 'MAO_PER_JIN' ? '每斤毛价' : '每斤元价' }}</span>
+        </UiField>
+        <UiField :label="form.priceMode === 'MAO_PER_JIN' ? '每斤毛价' : '每斤元价'">
           <input v-model.number="form.priceInput" type="number" min="0.0001" step="0.0001" required />
-        </label>
-        <label class="field wide">
-          <span>换算结果</span>
+        </UiField>
+        <UiField label="换算结果" wide>
           <input :value="conversionText" disabled />
-        </label>
-        <label class="field wide">
-          <span>备注</span>
+        </UiField>
+        <UiField label="备注" wide>
           <input v-model.trim="form.remark" />
-        </label>
+        </UiField>
       </div>
 
       <div class="actions">
-        <button class="btn primary" type="submit" :disabled="saving">
+        <UiButton variant="primary" type="submit" :disabled="saving">
           <Save :size="17" />
           保存采购
-        </button>
-        <button class="btn secondary" type="button" @click="resetForm">
+        </UiButton>
+        <UiButton @click="resetForm">
           <RotateCcw :size="17" />
           重置
-        </button>
-        <span class="message" :class="{ error: !!error }">{{ error || message }}</span>
+        </UiButton>
+        <ResultMessage :error="!!error">{{ error || message }}</ResultMessage>
       </div>
-    </form>
+    </UiPanel>
 
-    <div class="toolbar">
-      <label class="field">
-        <span>商品类型</span>
+    <UiToolbar>
+      <UiField label="商品类型">
         <select v-model="filters.productType">
           <option value="">全部品类</option>
           <option v-for="item in reference.productTypes" :key="item.value" :value="item.value">
             {{ item.label }}
           </option>
         </select>
-      </label>
-      <label class="field">
-        <span>仓库</span>
+      </UiField>
+      <UiField label="仓库">
         <select v-model="filters.warehouseId">
           <option value="">全部仓库</option>
           <option v-for="item in reference.warehouses" :key="item.id" :value="item.id">
             {{ item.name }}
           </option>
         </select>
-      </label>
-      <label class="field">
-        <span>关键词</span>
+      </UiField>
+      <UiField label="关键词">
         <input v-model.trim="filters.keyword" placeholder="商品、姓名、电话" @keyup.enter="loadPurchases" />
-      </label>
-      <button class="btn secondary" type="button" @click="loadPurchases">
+      </UiField>
+      <UiButton @click="loadPurchases">
         <Search :size="17" />
         查询
-      </button>
-    </div>
+      </UiButton>
+    </UiToolbar>
 
-    <div class="table-panel">
-      <div class="table-title">
-        <h2>采购记录</h2>
-        <span class="tag blue">{{ records.length }} 条</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>品类</th>
-              <th>商品</th>
-              <th>仓库</th>
-              <th>客户</th>
-              <th>电话</th>
-              <th>重量</th>
-              <th>单价</th>
-              <th>金额</th>
-              <th>住址</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="records.length === 0">
-              <td class="empty-row" colspan="10">暂无采购记录</td>
-            </tr>
-            <tr v-for="item in records" :key="item.id">
-              <td>{{ item.purchasedAt }}</td>
-              <td><span class="tag">{{ item.productTypeLabel }}</span></td>
-              <td>{{ item.productName }}</td>
-              <td>{{ item.warehouseName }}</td>
-              <td>{{ item.counterpartyName }}</td>
-              <td>{{ item.counterpartyPhone || '-' }}</td>
-              <td>{{ number(item.quantity || item.weightJin) }} {{ item.unitName || '斤' }}</td>
-              <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
-              <td>¥{{ money(item.totalAmount) }}</td>
-              <td>{{ item.counterpartyAddress || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable title="采购记录" :tag="`${records.length} 条`" min-width="1080px">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>品类</th>
+          <th>商品</th>
+          <th>仓库</th>
+          <th>客户</th>
+          <th>电话</th>
+          <th>重量</th>
+          <th>单价</th>
+          <th>金额</th>
+          <th>住址</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="records.length === 0">
+          <td class="empty-row" colspan="10">暂无采购记录</td>
+        </tr>
+        <tr v-for="item in records" :key="item.id">
+          <td>{{ item.purchasedAt }}</td>
+          <td><UiTag>{{ item.productTypeLabel }}</UiTag></td>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.warehouseName }}</td>
+          <td>{{ item.counterpartyName }}</td>
+          <td>{{ item.counterpartyPhone || '-' }}</td>
+          <td>{{ number(item.quantity || item.weightJin) }} {{ item.unitName || '斤' }}</td>
+          <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
+          <td>¥{{ money(item.totalAmount) }}</td>
+          <td>{{ item.counterpartyAddress || '-' }}</td>
+        </tr>
+      </tbody>
+    </DataTable>
   </section>
 </template>
 

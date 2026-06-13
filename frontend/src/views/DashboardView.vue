@@ -1,94 +1,65 @@
 <template>
   <section class="page-stack">
-    <div class="toolbar">
-      <label class="field">
-        <span>年份</span>
+    <UiToolbar>
+      <UiField label="年份">
         <select v-model="year">
           <option v-for="item in yearOptions" :key="item" :value="item">{{ item }}</option>
         </select>
-      </label>
-      <label class="field">
-        <span>商品类型</span>
+      </UiField>
+      <UiField label="商品类型">
         <select v-model="productType">
           <option value="">全部品类</option>
           <option v-for="item in reference.productTypes" :key="item.value" :value="item.value">
             {{ item.label }}
           </option>
         </select>
-      </label>
-      <button class="btn secondary" type="button" :disabled="loading" @click="loadTrend">
+      </UiField>
+      <UiButton :disabled="loading" @click="loadTrend">
         <RefreshCcw :size="17" />
         刷新
-      </button>
-      <span class="message" :class="{ error: !!error }">{{ error || statusText }}</span>
-    </div>
+      </UiButton>
+      <ResultMessage :error="!!error">{{ error || statusText }}</ResultMessage>
+    </UiToolbar>
 
-    <div class="metric-grid">
-      <div class="metric-item">
-        <span>采购金额</span>
-        <strong>¥{{ money(totals.purchaseAmount) }}</strong>
-      </div>
-      <div class="metric-item">
-        <span>销售金额</span>
-        <strong>¥{{ money(totals.saleAmount) }}</strong>
-      </div>
-      <div class="metric-item">
-        <span>采购重量</span>
-        <strong>{{ number(totals.purchaseWeight) }} 斤</strong>
-      </div>
-      <div class="metric-item">
-        <span>销售重量</span>
-        <strong>{{ number(totals.saleWeight) }} 斤</strong>
-      </div>
-    </div>
+    <MetricGrid>
+      <MetricCard label="采购金额">¥{{ money(totals.purchaseAmount) }}</MetricCard>
+      <MetricCard label="销售金额" tone="success">¥{{ money(totals.saleAmount) }}</MetricCard>
+      <MetricCard label="采购重量" tone="info">{{ number(totals.purchaseWeight) }} 斤</MetricCard>
+      <MetricCard label="销售重量" tone="warning">{{ number(totals.saleWeight) }} 斤</MetricCard>
+    </MetricGrid>
 
-    <div class="chart-panel">
-      <div class="chart-title">
-        <h2>月度金额</h2>
-        <span class="tag blue">{{ trend?.productTypeLabel || '全部' }}</span>
-      </div>
+    <UiPanel class="chart-panel" title="月度金额" :tag="trend?.productTypeLabel || '全部'" tag-variant="blue">
       <div ref="amountChartRef" class="chart"></div>
-    </div>
+    </UiPanel>
 
-    <div class="chart-panel">
-      <div class="chart-title">
-        <h2>同比 / 环比</h2>
-        <span class="tag amber">按销售金额计算</span>
-      </div>
+    <UiPanel class="chart-panel" title="同比 / 环比" tag="按销售金额计算" tag-variant="amber">
       <div ref="rateChartRef" class="chart"></div>
-    </div>
+    </UiPanel>
 
-    <div class="table-panel">
-      <div class="table-title">
-        <h2>月度明细</h2>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>月份</th>
-              <th>采购重量</th>
-              <th>采购金额</th>
-              <th>销售重量</th>
-              <th>销售金额</th>
-              <th>同比</th>
-              <th>环比</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in items" :key="item.month">
-              <td>{{ item.month }}月</td>
-              <td>{{ number(item.purchaseWeightJin) }} 斤</td>
-              <td>¥{{ money(item.purchaseAmount) }}</td>
-              <td>{{ number(item.saleWeightJin) }} 斤</td>
-              <td>¥{{ money(item.saleAmount) }}</td>
-              <td>{{ percent(item.saleYoYRate) }}</td>
-              <td>{{ percent(item.saleMoMRate) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable title="月度明细" min-width="760px">
+      <thead>
+        <tr>
+          <th>月份</th>
+          <th>采购重量</th>
+          <th>采购金额</th>
+          <th>销售重量</th>
+          <th>销售金额</th>
+          <th>同比</th>
+          <th>环比</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in items" :key="item.month">
+          <td>{{ item.month }}月</td>
+          <td>{{ number(item.purchaseWeightJin) }} 斤</td>
+          <td>¥{{ money(item.purchaseAmount) }}</td>
+          <td>{{ number(item.saleWeightJin) }} 斤</td>
+          <td>¥{{ money(item.saleAmount) }}</td>
+          <td>{{ percent(item.saleYoYRate) }}</td>
+          <td>{{ percent(item.saleMoMRate) }}</td>
+        </tr>
+      </tbody>
+    </DataTable>
   </section>
 </template>
 
@@ -202,4 +173,3 @@ onBeforeUnmount(() => {
   rateChart?.dispose()
 })
 </script>
-

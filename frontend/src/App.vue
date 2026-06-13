@@ -25,10 +25,10 @@
         </div>
         <div v-if="route.name !== 'login'" class="topbar-actions">
           <div class="topbar-badge">{{ auth.user?.username }} · {{ auth.roleLabel }}</div>
-          <button class="btn secondary" type="button" @click="logout">
+          <UiButton variant="secondary" @click="logout">
             <LogOut :size="17" />
             退出
-          </button>
+          </UiButton>
         </div>
       </header>
       <RouterView />

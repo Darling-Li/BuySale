@@ -2,214 +2,178 @@
   <section class="page-stack">
     <div v-if="!auth.isAdmin" class="readonly-note">普通角色仅可查询销售记录。</div>
 
-    <form v-if="auth.isAdmin" class="form-panel" @submit.prevent="submit">
-      <div class="form-title">
-        <h2>新增销售</h2>
-        <span class="tag amber">自动出库</span>
-      </div>
-
+    <UiPanel v-if="auth.isAdmin" as="form" class="form-panel" title="新增销售" tag="自动出库" tag-variant="amber" @submit.prevent="submit">
       <div class="form-grid">
-        <label class="field">
-          <span>商品类型</span>
+        <UiField label="商品类型">
           <select v-model="form.productType" required @change="handleProductTypeChange">
             <option v-for="item in reference.productTypes" :key="item.value" :value="item.value">
               {{ item.label }}
             </option>
           </select>
-        </label>
-        <label class="field wide">
-          <span>库存来源</span>
+        </UiField>
+        <UiField label="库存来源" wide>
           <select v-model="form.inventoryItemId" required @change="applyInventorySelection">
             <option value="" disabled>{{ inventoryOptions.length ? '请选择库存来源' : '暂无可用库存' }}</option>
             <option v-for="item in inventoryOptions" :key="item.id" :value="item.id">
               {{ item.warehouseName }} / {{ item.productName }} / 库存 {{ number(item.quantityJin) }} 斤
             </option>
           </select>
-        </label>
-        <label class="field">
-          <span>销售日期</span>
+        </UiField>
+        <UiField label="销售日期">
           <input v-model="form.soldAt" type="date" required />
-        </label>
-        <label class="field">
-          <span>客户姓名</span>
+        </UiField>
+        <UiField label="客户姓名">
           <input v-model.trim="form.buyerName" required />
-        </label>
-        <label class="field">
-          <span>电话</span>
+        </UiField>
+        <UiField label="电话">
           <input v-model.trim="form.buyerPhone" />
-        </label>
-        <label class="field wide">
-          <span>家庭住址</span>
+        </UiField>
+        <UiField label="家庭住址" wide>
           <input v-model.trim="form.buyerAddress" />
-        </label>
-        <label class="field">
-          <span>数量</span>
+        </UiField>
+        <UiField label="数量">
           <input v-model.number="form.quantity" type="number" min="0.01" step="0.01" required />
-        </label>
-        <label class="field">
-          <span>单位</span>
+        </UiField>
+        <UiField label="单位">
           <select v-model="form.unitName" required @change="applyUnitPreset">
             <option v-for="item in unitOptions" :key="item.label" :value="item.label">
               {{ item.label }}
             </option>
           </select>
-        </label>
-        <label class="field">
-          <span>每单位折合斤</span>
+        </UiField>
+        <UiField label="每单位折合斤">
           <input v-model.number="form.unitToJin" disabled type="number" min="0.0001" step="0.0001" required />
-        </label>
-        <label class="field">
-          <span>单位价格</span>
+        </UiField>
+        <UiField label="单位价格">
           <input v-model.number="form.unitPrice" type="number" min="0.0001" step="0.0001" required />
-        </label>
-        <label class="field wide">
-          <span>换算结果</span>
+        </UiField>
+        <UiField label="换算结果" wide>
           <input :value="conversionText" disabled />
-        </label>
-        <label class="field">
-          <span>备注</span>
+        </UiField>
+        <UiField label="备注">
           <input v-model.trim="form.remark" />
-        </label>
+        </UiField>
       </div>
 
       <div class="actions">
-        <button class="btn primary" type="submit" :disabled="saving">
+        <UiButton variant="primary" type="submit" :disabled="saving">
           <Save :size="17" />
           保存销售
-        </button>
-        <button class="btn secondary" type="button" @click="resetForm">
+        </UiButton>
+        <UiButton @click="resetForm">
           <RotateCcw :size="17" />
           重置
-        </button>
-        <span class="message" :class="{ error: !!error }">{{ error || message }}</span>
+        </UiButton>
+        <ResultMessage :error="!!error">{{ error || message }}</ResultMessage>
       </div>
-    </form>
+    </UiPanel>
 
-    <div class="toolbar">
-      <label class="field">
-        <span>商品类型</span>
+    <UiToolbar>
+      <UiField label="商品类型">
         <select v-model="filters.productType">
           <option value="">全部品类</option>
           <option v-for="item in reference.productTypes" :key="item.value" :value="item.value">
             {{ item.label }}
           </option>
         </select>
-      </label>
-      <label class="field">
-        <span>仓库</span>
+      </UiField>
+      <UiField label="仓库">
         <select v-model="filters.warehouseId">
           <option value="">全部仓库</option>
           <option v-for="item in reference.warehouses" :key="item.id" :value="item.id">
             {{ item.name }}
           </option>
         </select>
-      </label>
-      <label class="field">
-        <span>关键词</span>
+      </UiField>
+      <UiField label="关键词">
         <input v-model.trim="filters.keyword" placeholder="商品、姓名、电话" @keyup.enter="loadSales" />
-      </label>
-      <button class="btn secondary" type="button" @click="loadSales">
+      </UiField>
+      <UiButton @click="loadSales">
         <Search :size="17" />
         查询
-      </button>
-    </div>
+      </UiButton>
+    </UiToolbar>
 
-    <form v-if="auth.isAdmin && settlementForm.saleId" class="form-panel" @submit.prevent="submitSettlement">
-      <div class="form-title">
-        <h2>登记结账</h2>
-        <span class="tag amber">{{ settlementForm.saleLabel }}</span>
-      </div>
+    <UiPanel v-if="auth.isAdmin && settlementForm.saleId" as="form" class="form-panel" title="登记结账" :tag="settlementForm.saleLabel" tag-variant="amber" @submit.prevent="submitSettlement">
       <div class="form-grid">
-        <label class="field">
-          <span>结账金额</span>
+        <UiField label="结账金额">
           <input v-model.number="settlementForm.amount" type="number" min="0.01" step="0.01" required />
-        </label>
-        <label class="field">
-          <span>结账渠道</span>
+        </UiField>
+        <UiField label="结账渠道">
           <select v-model="settlementForm.channel" required>
             <option v-for="item in settlementChannels" :key="item.value" :value="item.value">
               {{ item.label }}
             </option>
           </select>
-        </label>
-        <label class="field">
-          <span>结账时间</span>
+        </UiField>
+        <UiField label="结账时间">
           <input v-model="settlementForm.settledAt" type="datetime-local" required />
-        </label>
-        <label class="field wide">
-          <span>备注</span>
+        </UiField>
+        <UiField label="备注" wide>
           <input v-model.trim="settlementForm.remark" />
-        </label>
+        </UiField>
       </div>
       <div class="actions">
-        <button class="btn primary" type="submit" :disabled="settlementSaving">
+        <UiButton variant="primary" type="submit" :disabled="settlementSaving">
           <Save :size="17" />
           保存结账
-        </button>
-        <button class="btn secondary" type="button" @click="resetSettlement">
+        </UiButton>
+        <UiButton @click="resetSettlement">
           <RotateCcw :size="17" />
           取消
-        </button>
-        <span class="message" :class="{ error: !!settlementError }">{{ settlementError || settlementMessage }}</span>
+        </UiButton>
+        <ResultMessage :error="!!settlementError">{{ settlementError || settlementMessage }}</ResultMessage>
       </div>
-    </form>
+    </UiPanel>
 
-    <div class="table-panel">
-      <div class="table-title">
-        <h2>销售记录</h2>
-        <span class="tag blue">{{ records.length }} 条</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>品类</th>
-              <th>商品</th>
-              <th>仓库</th>
-              <th>客户</th>
-              <th>电话</th>
-              <th>重量</th>
-              <th>单价</th>
-              <th>金额</th>
-              <th>结账金额</th>
-              <th>未结账</th>
-              <th>结账渠道</th>
-              <th v-if="auth.isAdmin">操作</th>
-              <th>住址</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="records.length === 0">
-              <td class="empty-row" :colspan="auth.isAdmin ? 14 : 13">暂无销售记录</td>
-            </tr>
-            <tr v-for="item in records" :key="item.id">
-              <td>{{ item.soldAt }}</td>
-              <td><span class="tag">{{ item.productTypeLabel }}</span></td>
-              <td>{{ item.productName }}</td>
-              <td>{{ item.warehouseName }}</td>
-              <td>{{ item.buyerName }}</td>
-              <td>{{ item.buyerPhone || '-' }}</td>
-              <td>{{ number(item.quantity || item.weightJin) }} {{ item.unitName || '斤' }}</td>
-              <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
-              <td>¥{{ money(item.totalAmount) }}</td>
-              <td>¥{{ money(item.settledAmount) }}</td>
-              <td>¥{{ money(item.unsettledAmount) }}</td>
-              <td>{{ item.settlementChannels || '-' }}</td>
-              <td v-if="auth.isAdmin">
-                <button class="btn ghost" type="button" :disabled="Number(item.unsettledAmount || 0) <= 0" @click="startSettlement(item)">
-                  <Save :size="16" />
-                  登记
-                </button>
-              </td>
-              <td>
-                {{ item.buyerAddress || '-' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable title="销售记录" :tag="`${records.length} 条`" min-width="1320px">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>品类</th>
+          <th>商品</th>
+          <th>仓库</th>
+          <th>客户</th>
+          <th>电话</th>
+          <th>重量</th>
+          <th>单价</th>
+          <th>金额</th>
+          <th>结账金额</th>
+          <th>未结账</th>
+          <th>结账渠道</th>
+          <th v-if="auth.isAdmin">操作</th>
+          <th>住址</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="records.length === 0">
+          <td class="empty-row" :colspan="auth.isAdmin ? 14 : 13">暂无销售记录</td>
+        </tr>
+        <tr v-for="item in records" :key="item.id">
+          <td>{{ item.soldAt }}</td>
+          <td><UiTag>{{ item.productTypeLabel }}</UiTag></td>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.warehouseName }}</td>
+          <td>{{ item.buyerName }}</td>
+          <td>{{ item.buyerPhone || '-' }}</td>
+          <td>{{ number(item.quantity || item.weightJin) }} {{ item.unitName || '斤' }}</td>
+          <td>¥{{ money(item.unitPrice || item.pricePerJin) }} / {{ item.unitName || '斤' }}</td>
+          <td>¥{{ money(item.totalAmount) }}</td>
+          <td>¥{{ money(item.settledAmount) }}</td>
+          <td>¥{{ money(item.unsettledAmount) }}</td>
+          <td>{{ item.settlementChannels || '-' }}</td>
+          <td v-if="auth.isAdmin">
+            <UiButton variant="ghost" :disabled="Number(item.unsettledAmount || 0) <= 0" @click="startSettlement(item)">
+              <Save :size="16" />
+              登记
+            </UiButton>
+          </td>
+          <td>
+            {{ item.buyerAddress || '-' }}
+          </td>
+        </tr>
+      </tbody>
+    </DataTable>
   </section>
 </template>
 

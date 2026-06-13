@@ -1,6 +1,6 @@
 <template>
   <section class="login-panel">
-    <div class="login-card">
+    <UiPanel class="login-card">
       <div class="brand login-brand">
         <div class="brand-mark">米</div>
         <div>
@@ -10,25 +10,22 @@
       </div>
 
       <form class="login-form" @submit.prevent="submit">
-        <label class="field">
-          <span>用户名</span>
+        <UiField label="用户名">
           <input v-model.trim="username" autocomplete="username" required />
-        </label>
-        <label class="field">
-          <span>密码</span>
+        </UiField>
+        <UiField label="密码">
           <input v-model="password" autocomplete="current-password" required type="password" />
-        </label>
-        <label class="field">
-          <span>管理员设备码</span>
+        </UiField>
+        <UiField label="管理员设备码">
           <input v-model.trim="adminDeviceToken" autocomplete="off" placeholder="普通用户可不填" type="password" />
-        </label>
-        <button class="btn primary" type="submit" :disabled="loading">
+        </UiField>
+        <UiButton variant="primary" type="submit" :disabled="loading">
           <LogIn :size="17" />
           登录
-        </button>
-        <p class="message" :class="{ error: !!error }">{{ error || '管理员：admin/admin123；普通角色：user/user123' }}</p>
+        </UiButton>
+        <ResultMessage :error="!!error">{{ error || '管理员：admin/admin123；普通角色：user/user123' }}</ResultMessage>
       </form>
-    </div>
+    </UiPanel>
   </section>
 </template>
 

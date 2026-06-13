@@ -2,88 +2,70 @@
   <section class="page-stack">
     <div v-if="!auth.isAdmin" class="readonly-note">普通角色仅可查询仓库信息。</div>
 
-    <form v-if="auth.isAdmin" class="form-panel" @submit.prevent="submit">
-      <div class="form-title">
-        <h2>{{ editingId ? '编辑仓库' : '新增仓库' }}</h2>
-        <span class="tag">{{ editingId ? '编辑中' : '仓库存储' }}</span>
-      </div>
-
+    <UiPanel v-if="auth.isAdmin" as="form" class="form-panel" :title="editingId ? '编辑仓库' : '新增仓库'" :tag="editingId ? '编辑中' : '仓库存储'" @submit.prevent="submit">
       <div class="form-grid">
-        <label class="field">
-          <span>仓库名称</span>
+        <UiField label="仓库名称">
           <input v-model.trim="form.name" required />
-        </label>
-        <label class="field">
-          <span>联系人</span>
+        </UiField>
+        <UiField label="联系人">
           <input v-model.trim="form.contactName" />
-        </label>
-        <label class="field">
-          <span>联系电话</span>
+        </UiField>
+        <UiField label="联系电话">
           <input v-model.trim="form.contactPhone" />
-        </label>
-        <label class="field wide">
-          <span>仓库地址</span>
+        </UiField>
+        <UiField label="仓库地址" wide>
           <input v-model.trim="form.address" />
-        </label>
-        <label class="field wide">
-          <span>备注</span>
+        </UiField>
+        <UiField label="备注" wide>
           <input v-model.trim="form.remark" />
-        </label>
+        </UiField>
       </div>
 
       <div class="actions">
-        <button class="btn primary" type="submit" :disabled="saving">
+        <UiButton variant="primary" type="submit" :disabled="saving">
           <Save :size="17" />
           {{ editingId ? '保存修改' : '保存仓库' }}
-        </button>
-        <button class="btn secondary" type="button" @click="reset">
+        </UiButton>
+        <UiButton @click="reset">
           <RotateCcw :size="17" />
           重置
-        </button>
-        <span class="message" :class="{ error: !!error }">{{ error || message }}</span>
+        </UiButton>
+        <ResultMessage :error="!!error">{{ error || message }}</ResultMessage>
       </div>
-    </form>
+    </UiPanel>
 
-    <div class="table-panel">
-      <div class="table-title">
-        <h2>仓库列表</h2>
-        <span class="tag blue">{{ reference.warehouses.length }} 个</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th>地址</th>
-              <th>联系人</th>
-              <th>电话</th>
-              <th>备注</th>
-              <th>更新时间</th>
-              <th v-if="auth.isAdmin">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="reference.warehouses.length === 0">
-              <td class="empty-row" :colspan="auth.isAdmin ? 7 : 6">暂无仓库</td>
-            </tr>
-            <tr v-for="item in reference.warehouses" :key="item.id">
-              <td>{{ item.name }}</td>
-              <td>{{ item.address || '-' }}</td>
-              <td>{{ item.contactName || '-' }}</td>
-              <td>{{ item.contactPhone || '-' }}</td>
-              <td>{{ item.remark || '-' }}</td>
-              <td>{{ dateTime(item.updatedAt) }}</td>
-              <td v-if="auth.isAdmin">
-                <button class="btn ghost" type="button" @click="edit(item)">
-                  <Pencil :size="16" />
-                  编辑
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable title="仓库列表" :tag="`${reference.warehouses.length} 个`" min-width="860px">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>地址</th>
+          <th>联系人</th>
+          <th>电话</th>
+          <th>备注</th>
+          <th>更新时间</th>
+          <th v-if="auth.isAdmin">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="reference.warehouses.length === 0">
+          <td class="empty-row" :colspan="auth.isAdmin ? 7 : 6">暂无仓库</td>
+        </tr>
+        <tr v-for="item in reference.warehouses" :key="item.id">
+          <td>{{ item.name }}</td>
+          <td>{{ item.address || '-' }}</td>
+          <td>{{ item.contactName || '-' }}</td>
+          <td>{{ item.contactPhone || '-' }}</td>
+          <td>{{ item.remark || '-' }}</td>
+          <td>{{ dateTime(item.updatedAt) }}</td>
+          <td v-if="auth.isAdmin">
+            <UiButton variant="ghost" @click="edit(item)">
+              <Pencil :size="16" />
+              编辑
+            </UiButton>
+          </td>
+        </tr>
+      </tbody>
+    </DataTable>
   </section>
 </template>
 

@@ -4,62 +4,54 @@
       <div v-if="copyNotice" class="copy-toast">复制成功</div>
     </Transition>
 
-    <div class="toolbar">
-      <button class="btn secondary" type="button" @click="loadLogs">
+    <UiToolbar>
+      <UiButton @click="loadLogs">
         <RefreshCcw :size="17" />
         刷新
-      </button>
-      <span class="message error">{{ error }}</span>
-    </div>
+      </UiButton>
+      <ResultMessage :error="!!error">{{ error }}</ResultMessage>
+    </UiToolbar>
 
-    <div class="table-panel">
-      <div class="table-title">
-        <h2>管理员操作日志</h2>
-        <span class="tag blue">{{ records.length }} 条</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>时间</th>
-              <th>用户</th>
-              <th>角色</th>
-              <th>动作</th>
-              <th>参数</th>
-              <th>状态</th>
-              <th>IP</th>
-              <th>User Agent</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="records.length === 0">
-              <td class="empty-row" colspan="8">暂无操作日志</td>
-            </tr>
-            <tr v-for="item in records" :key="item.id">
-              <td>{{ dateTime(item.occurredAt) }}</td>
-              <td>{{ item.username }}</td>
-              <td><span class="tag">{{ item.roleName }}</span></td>
-              <td>{{ item.actionName }}</td>
-              <td class="params-cell">
-                <button
-                  class="params-copy"
-                  type="button"
-                  :title="displayParams(item)"
-                  @click="copyParams(item)"
-                >
-                  {{ displayParams(item) }}
-                </button>
-              </td>
-              <td>
-                <span :class="['tag', item.statusCode >= 400 ? 'red' : '']">{{ item.statusCode }}</span>
-              </td>
-              <td>{{ item.ipAddress || '-' }}</td>
-              <td>{{ item.userAgent || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable title="管理员操作日志" :tag="`${records.length} 条`" min-width="1120px">
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>用户</th>
+          <th>角色</th>
+          <th>动作</th>
+          <th>参数</th>
+          <th>状态</th>
+          <th>IP</th>
+          <th>User Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="records.length === 0">
+          <td class="empty-row" colspan="8">暂无操作日志</td>
+        </tr>
+        <tr v-for="item in records" :key="item.id">
+          <td>{{ dateTime(item.occurredAt) }}</td>
+          <td>{{ item.username }}</td>
+          <td><UiTag>{{ item.roleName }}</UiTag></td>
+          <td>{{ item.actionName }}</td>
+          <td class="params-cell">
+            <button
+              class="params-copy"
+              type="button"
+              :title="displayParams(item)"
+              @click="copyParams(item)"
+            >
+              {{ displayParams(item) }}
+            </button>
+          </td>
+          <td>
+            <UiTag :variant="item.statusCode >= 400 ? 'red' : ''">{{ item.statusCode }}</UiTag>
+          </td>
+          <td>{{ item.ipAddress || '-' }}</td>
+          <td>{{ item.userAgent || '-' }}</td>
+        </tr>
+      </tbody>
+    </DataTable>
   </section>
 </template>
 
